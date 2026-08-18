@@ -1,0 +1,2667 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>DNS-SD Data Block Encoding for Non-DNS Transports</title>
+<meta content="Smith Kennedy" name="author">
+<meta content="
+       This specification defines the DNS-SD Data Block (DDB), a compact, self-describing TLV encoding of selected DNS-SD service information for use in non-DNS transports such as, but not limited to, Bluetooth Low Energy Transport Discovery Service   or NFC Verb NDEF Records  . The DDB format and processing rules provide interoperable carriage of fields including Service Name, Service Instance Name, TXT data, UUID, and other information fields. This specification does not define a new DNS record type and does not replace or modify DNS-SD or mDNS protocol behavior. 
+    " name="description">
+<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="dns-sd" name="keyword">
+<meta content="service discovery" name="keyword">
+<meta content="bluetooth low energy" name="keyword">
+<meta content="nfc" name="keyword">
+<meta content="draft-kennedy-dnssd-data-block-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.0
+    Python 3.14.7
+    ConfigArgParse 1.7.5
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.11.3
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.8.2
+-->
+<link href="draft-kennedy-dnssd-data-block.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">DNS-SD Data Block</td>
+<td class="right">August 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Kennedy</td>
+<td class="center">Expires 19 February 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-kennedy-dnssd-data-block-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-08-18" class="published">18 August 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-02-19">19 February 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">S. Kennedy</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">DNS-SD Data Block Encoding for Non-DNS Transports</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This specification defines the DNS-SD Data Block (DDB), a compact, self-describing TLV encoding of selected DNS-SD service information for use in non-DNS transports such as, but not limited to, Bluetooth Low Energy Transport Discovery Service <span>[<a href="#BT-TDS" class="cite xref">BT-TDS</a>]</span> or NFC Verb NDEF Records <span>[<a href="#NFC-VERB-RTD" class="cite xref">NFC-VERB-RTD</a>]</span>. The DDB format and processing rules provide interoperable carriage of fields including Service Name, Service Instance Name, TXT data, UUID, and other information fields. This specification does not define a new DNS record type and does not replace or modify DNS-SD or mDNS protocol behavior.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-kennedy-dnssd-data-block/">https://datatracker.ietf.org/doc/draft-kennedy-dnssd-data-block/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        dnssd Working Group mailing list (<span><a href="mailto:dnssd@ietf.org">mailto:dnssd@ietf.org</a></span>),
+        which is archived at <span><a href="https://datatracker.ietf.org/wg/dnssd/about/">https://datatracker.ietf.org/wg/dnssd/about/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/dnssd/">https://www.ietf.org/mailman/listinfo/dnssd/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 19 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-terminology" class="internal xref">Conventions and Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-dns-sd-background-and-motiv" class="internal xref">DNS-SD Background and Motivation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-dns-sd-service-description-" class="internal xref">DNS-SD Service Description Model</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-transport-gap" class="internal xref">Transport Gap</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-dns-sd-data-block-ddb-forma" class="internal xref">DNS-SD Data Block (DDB) Format</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-block-header" class="internal xref">Block Header</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-tlv-field-structure" class="internal xref">TLV Field Structure</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-field-type-registry" class="internal xref">Field Type Registry</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.1">
+                    <p id="section-toc.1-1.4.2.3.2.1.1"><a href="#section-4.3.1" class="auto internal xref">4.3.1</a>.  <a href="#name-service-name-type-0x01" class="internal xref">Service Name (Type 0x01)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.2">
+                    <p id="section-toc.1-1.4.2.3.2.2.1"><a href="#section-4.3.2" class="auto internal xref">4.3.2</a>.  <a href="#name-service-instance-name-type-" class="internal xref">Service Instance Name (Type 0x02)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.3">
+                    <p id="section-toc.1-1.4.2.3.2.3.1"><a href="#section-4.3.3" class="auto internal xref">4.3.3</a>.  <a href="#name-txt-data-type-0x03" class="internal xref">TXT Data (Type 0x03)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.4">
+                    <p id="section-toc.1-1.4.2.3.2.4.1"><a href="#section-4.3.4" class="auto internal xref">4.3.4</a>.  <a href="#name-uuid-type-0x04" class="internal xref">UUID (Type 0x04)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.5">
+                    <p id="section-toc.1-1.4.2.3.2.5.1"><a href="#section-4.3.5" class="auto internal xref">4.3.5</a>.  <a href="#name-domain-type-0x05" class="internal xref">Domain (Type 0x05)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.6">
+                    <p id="section-toc.1-1.4.2.3.2.6.1"><a href="#section-4.3.6" class="auto internal xref">4.3.6</a>.  <a href="#name-port-type-0x06" class="internal xref">Port (Type 0x06)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.7">
+                    <p id="section-toc.1-1.4.2.3.2.7.1"><a href="#section-4.3.7" class="auto internal xref">4.3.7</a>.  <a href="#name-subtype-list-type-0x07" class="internal xref">Subtype List (Type 0x07)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.8">
+                    <p id="section-toc.1-1.4.2.3.2.8.1"><a href="#section-4.3.8" class="auto internal xref">4.3.8</a>.  <a href="#name-hostname-type-0x08" class="internal xref">Hostname (Type 0x08)</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-encoding-rules" class="internal xref">Encoding Rules</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-decoding-rules-and-forward-" class="internal xref">Decoding Rules and Forward Compatibility</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-ddb-payload-identity-and-me" class="internal xref">DDB Payload Identity and Media Types</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-transport-mappings" class="internal xref">Transport Mappings</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-transport-discovery-service" class="internal xref">Transport Discovery Service (TDS) AD Structure</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.1">
+                    <p id="section-toc.1-1.5.2.1.2.1.1"><a href="#section-5.1.1" class="auto internal xref">5.1.1</a>.  <a href="#name-size-considerations" class="internal xref">Size Considerations</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-nfc-forum-verb-record-descr" class="internal xref">NFC Forum Verb Record Descriptor Data</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.1">
+                    <p id="section-toc.1-1.5.2.2.2.1.1"><a href="#section-5.2.1" class="auto internal xref">5.2.1</a>.  <a href="#name-context-identifier-assignme" class="internal xref">Context Identifier Assignment</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.2">
+                    <p id="section-toc.1-1.5.2.2.2.2.1"><a href="#section-5.2.2" class="auto internal xref">5.2.2</a>.  <a href="#name-descriptor-data-encoding" class="internal xref">Descriptor Data Encoding</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.3">
+                    <p id="section-toc.1-1.5.2.2.2.3.1"><a href="#section-5.2.3" class="auto internal xref">5.2.3</a>.  <a href="#name-referencing-a-separate-ndef" class="internal xref">Referencing a Separate NDEF DDB Record</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-ndef-ddb-record-payload-map" class="internal xref">NDEF DDB Record Payload Mapping (MIME or External Type)</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-relationship-to-dns-sd" class="internal xref">Relationship to DNS-SD</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-deriving-dns-sd-records-fro" class="internal xref">Deriving DNS-SD Records from a DDB</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-constructing-a-ddb-from-dns" class="internal xref">Constructing a DDB from DNS-SD Records</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-domain-handling" class="internal xref">Domain Handling</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-minimal-printer-service-ddb" class="internal xref">Minimal Printer Service DDB</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-full-printer-service-ddb-wi" class="internal xref">Full Printer Service DDB with TXT and UUID</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-bluetooth-low-energy-tds-ad" class="internal xref">Bluetooth Low Energy TDS Advertisement Payload (Hex Annotated)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-nfc-verb-record-with-minima" class="internal xref">NFC Verb Record with Minimal DDB Descriptor Data</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-design-notes-and-alternativ" class="internal xref">Design Notes and Alternatives Considered</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-why-tlv-and-not-cbor-or-jso" class="internal xref">Why TLV and Not CBOR or JSON</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-why-dns-sd-string-encoding-" class="internal xref">Why DNS-SD String Encoding and Not Numeric Types</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-uuid-encoding" class="internal xref">UUID Encoding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
+                <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-txt-record-encoding" class="internal xref">TXT Record Encoding</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-dns-sd-data-block-tlv-type-" class="internal xref">DNS-SD Data Block TLV Type Registry</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-nfc-forum-context-identifie" class="internal xref">NFC Forum Context Identifier</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-mime-type-registration" class="internal xref">MIME Type Registration</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-spoofing-and-impersonation" class="internal xref">Spoofing and Impersonation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-privacy-persistent-identifi" class="internal xref">Privacy: Persistent Identifiers</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
+                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-denial-of-service" class="internal xref">Denial of Service</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.4">
+                <p id="section-toc.1-1.10.2.4.1"><a href="#section-10.4" class="auto internal xref">10.4</a>.  <a href="#name-data-integrity" class="internal xref">Data Integrity</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5">
+                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-sensitive-data-in-txt-recor" class="internal xref">Sensitive Data in TXT Records</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
+                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="intro">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">DNS-based Service Discovery <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span> over Multicast DNS <span>[<a href="#RFC6762" class="cite xref">RFC6762</a>]</span> is widely deployed for zero-configuration service advertisement on local IP networks. Printers, media servers, file-sharing services, and many other services are advertised and discovered via DNS-SD over mDNS.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">However, there are scenarios where these instances of services can be advertised using short range or proximity focused technologies such as Bluetooth Low Energy or NFC, and could be discovered by clients if the DNS-SD service information was provided over these non-IP based transports or when those transports have yet to be brought up (what is sometimes referred to as "pre-association" service discovery). Examples of this include the following:<a href="#section-1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-3.1">
+          <p id="section-1-3.1.1">An IPP printer in an office advertises its IPP print service using Bluetooth Low Energy Transport Discovery Service (TDS) to provide address and service information to physically proximate clients to let them connect to the print service without depending on DNS-SD via mDNS or infrastructure.<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-3.2">
+          <p id="section-1-3.2.1">A television with an NFC interface can provide rich information about how a client can connect to it, and what streaming services it supports.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-4">In each of these environments, device makers currently have no standard encoding for DNS-SD service information. This leads to fragmentation: each vendor invents its own representation, making cross-vendor interoperability difficult or unnecessarily bloating payload sizes.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">This specification defines the DNS-SD Data Block (DDB): a compact, TLV-based binary encoding of the DNS-SD service description fields most relevant to discovery and connection bootstrapping. The DDB is designed to:<a href="#section-1-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-6.1">
+          <p id="section-1-6.1.1">Fit in constrained transport payloads (e.g., &lt;= 29 bytes for a Bluetooth Low Energy legacy AD type payload unit, with guidelines for larger payloads).<a href="#section-1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-6.2">
+          <p id="section-1-6.2.1">Be self-describing and forward-compatible (unknown fields are skipped by receivers that do not understand them).<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-6.3">
+          <p id="section-1-6.3.1">Round-trip losslessly to and from DNS-SD SRV + TXT records for the fields it encodes.<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-6.4">
+          <p id="section-1-6.4.1">Serve as the data payload in Bluetooth Low Energy Transport Discovery Service (TDS) organization blocks, NDEF MIME/External Type records, and similar constrained containers. In NFC Forum Verb records, Descriptor Data is generally limited to compact/minimal DDB content due to strict size limits.<a href="#section-1-6.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-7">This specification is a Standards Track specification. It defines the DDB format and associated processing and transport mapping rules for interoperable use. Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum).<a href="#section-1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-terminology">
+<section id="section-2">
+      <h2 id="name-conventions-and-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-terminology" class="section-name selfRef">Conventions and Terminology</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">The following terms are used:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-3">
+        <dt id="section-2-3.1">DDB (DNS-SD Data Block):</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.2">
+          <p id="section-2-3.2.1">The compact binary encoding defined in this specification.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.3">Service Name:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.4">
+          <p id="section-2-3.4.1">The DNS-SD service name label pair, consisting of an Application Protocol label and a Transport Protocol label, for example "_ipp._tcp" or "_http._tcp". As defined in <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 7, and registered per <span>[<a href="#RFC6335" class="cite xref">RFC6335</a>]</span>. Within a DDB, this value is carried in TLV Type 0x01 (see <a href="#service-name" class="auto internal xref">Section 4.3.1</a>).<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.5">Service Instance Name:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.6">
+          <p id="section-2-3.6.1">The full DNS name of a DNS-SD service instance, composed of an Instance Label, a Service Name, and a Domain, for example "My Printer._ipp._tcp.local". When used in a DDB, the Domain component is typically omitted (defaulting to "local") and the Instance and Service components are stored separately.<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.7">Service Instance Label:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.8">
+          <p id="section-2-3.8.1">The &lt;Instance&gt; component of a Service Instance Name. A human-readable string (up to 63 UTF-8 octets) that identifies a particular service instance.<a href="#section-2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.9">TXT Data:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.10">
+          <p id="section-2-3.10.1">The DNS-SD TXT record payload, encoded as a sequence of length-prefixed strings, each string being a UTF-8 key=value pair or a bare key, as specified in <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 6.<a href="#section-2-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.11">UUID:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.12">
+          <p id="section-2-3.12.1">A Universally Unique Identifier as defined in <span>[<a href="#RFC9562" class="cite xref">RFC9562</a>]</span> (formerly <span>[<a href="#RFC4122" class="cite xref">RFC4122</a>]</span>), encoded as 16 octets in network byte order following the binary representation defined therein.<a href="#section-2-3.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.13">TLV:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.14">
+          <p id="section-2-3.14.1">Type-Length-Value encoding, where each field is represented as a 1-octet type code, a 1-octet or 2-octet length, and a value of that length.<a href="#section-2-3.14.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.15">Bluetooth Low Energy:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.16">
+          <p id="section-2-3.16.1">Bluetooth Low Energy, as specified by the Bluetooth SIG in the Bluetooth Core Specification.<a href="#section-2-3.16.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.17">AD structure:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.18">
+          <p id="section-2-3.18.1">A Bluetooth Low Energy Advertising Data structure, consisting of a 1-octet length field, a 1-octet AD Type, and an AD-type-specific data field.<a href="#section-2-3.18.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.19">NFC Forum Verb RTD:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.20">
+          <p id="section-2-3.20.1">The NFC Forum Well-Known Type "V" (0x56), defining a record type for advertising service descriptors within an NDEF message. Defined in <span>[<a href="#NFC-VERB-RTD" class="cite xref">NFC-VERB-RTD</a>]</span>.<a href="#section-2-3.20.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.21">NDEF:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.22">
+          <p id="section-2-3.22.1">NFC Data Exchange Format, defined by the NFC Forum.<a href="#section-2-3.22.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.23">mDNS:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.24">
+          <p id="section-2-3.24.1">Multicast DNS <span>[<a href="#RFC6762" class="cite xref">RFC6762</a>]</span>.<a href="#section-2-3.24.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="dns-sd-background-and-motivation">
+<section id="section-3">
+      <h2 id="name-dns-sd-background-and-motiv">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-dns-sd-background-and-motiv" class="section-name selfRef">DNS-SD Background and Motivation</a>
+      </h2>
+<div id="dns-sd-service-description-model">
+<section id="section-3.1">
+        <h3 id="name-dns-sd-service-description-">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-dns-sd-service-description-" class="section-name selfRef">DNS-SD Service Description Model</a>
+        </h3>
+<p id="section-3.1-1">DNS-SD <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span> uses three DNS record types to describe a service instance:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.1-2">
+          <dt id="section-3.1-2.1">PTR record:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-2.2">
+            <p id="section-3.1-2.2.1">Maps a Service Name to one or more Service Instance Names. Example:<a href="#section-3.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<div class="alignLeft art-text artwork" id="section-3.1-3">
+<pre>
+_ipp._tcp.local. PTR "My Printer._ipp._tcp.local."
+</pre><a href="#section-3.1-3" class="pilcrow">¶</a>
+</div>
+<span class="break"></span><dl class="dlParallel" id="section-3.1-4">
+          <dt id="section-3.1-4.1">SRV record:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.2">
+            <p id="section-3.1-4.2.1">Maps a Service Instance Name to a target hostname, port, priority, and weight. Example:<a href="#section-3.1-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<div class="alignLeft art-text artwork" id="section-3.1-5">
+<pre>
+"My Printer._ipp._tcp.local." SRV 0 0 631 printer.local.
+</pre><a href="#section-3.1-5" class="pilcrow">¶</a>
+</div>
+<span class="break"></span><dl class="dlParallel" id="section-3.1-6">
+          <dt id="section-3.1-6.1">TXT record:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-6.2">
+            <p id="section-3.1-6.2.1">Carries key=value metadata associated with a Service Instance Name. Example:<a href="#section-3.1-6.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<div class="alignLeft art-text artwork" id="section-3.1-7">
+<pre>
+"My Printer._ipp._tcp.local." TXT "txtvers=1" "pdl=application/pdf"
+</pre><a href="#section-3.1-7" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-8">Some services define a UUID key/value for their TXT records (e.g., the "UUID" key for _ipp._tcp print service instances).<a href="#section-3.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.1-9">When a client seeks a specific service name, it first queries for PTR records matching that service name (for example, "_ipp._tcp" for IPP print services). The PTR response contains one or more Service Instance Names -- the specific instances of that service name that are available. To learn the metadata associated with a particular instance, the client performs a TXT record query using that Service Instance Name. To actually connect to the service, the client performs an SRV record query to resolve the Service Instance Name to a hostname and port number. The hostname is then resolved via A or AAAA records to determine the IPv4 or IPv6 address. In this way, the client progressively retrieves the information needed: service instances of the desired service name, metadata for each instance, and network connectivity details.<a href="#section-3.1-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="transport-gap">
+<section id="section-3.2">
+        <h3 id="name-transport-gap">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-transport-gap" class="section-name selfRef">Transport Gap</a>
+        </h3>
+<p id="section-3.2-1">On IP networks, clients can issue DNS-SD queries to retrieve this information via mDNS <span>[<a href="#RFC6762" class="cite xref">RFC6762</a>]</span> or infrastructure DNS. Other short-range peer-to-peer transports can provide service advertisement data in frames that precede or operate independently of IP network association before the peers have established a trust relationship ("paired"):<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.2-2">
+          <dt id="section-3.2-2.1">Bluetooth Low Energy:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-2.2">
+            <p id="section-3.2-2.2.1">Bluetooth Low Energy advertisements reach nearby devices even with no IP connectivity. However, Bluetooth Low Energy advertisement payloads are tightly constrained (31 octets for legacy advertising; 255 octets for extended advertising without fragmentation). The Transport Discovery Service (TDS) <span>[<a href="#BT-TDS" class="cite xref">BT-TDS</a>]</span> provides a standardized Bluetooth Low Energy mechanism for advertising access to services over a secondary transport, making it a natural container for DDB content.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-2.3">NFC:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-2.4">
+            <p id="section-3.2-2.4.1">An NFC tag or peer carries data in NDEF records, including the NFC Forum Verb RTD which is specifically designed for service advertisement. Because Verb Descriptor Data is limited to 1-32 octets, it is suitable only for compact hints (for example, Service Name only). For complete DDB content, DNS-SD service information is carried in an NDEF MIME or External Type record, optionally referenced from a Verb Service Descriptor.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-3.2-3">In both environments, a compact, standard encoding of DNS-SD service metadata would enable:<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">(a) Clients to identify relevant services without IP-level DNS queries.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2-5">(b) Consistent cross-vendor encoding that any compliant parser can decode.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
+<p id="section-3.2-6">(c) Smooth transition: once an IP connection is available, the decoded fields map directly to expected DNS-SD records.<a href="#section-3.2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="dns-sd-data-block-ddb-format">
+<section id="section-4">
+      <h2 id="name-dns-sd-data-block-ddb-forma">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-dns-sd-data-block-ddb-forma" class="section-name selfRef">DNS-SD Data Block (DDB) Format</a>
+      </h2>
+<div id="block-header">
+<section id="section-4.1">
+        <h3 id="name-block-header">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-block-header" class="section-name selfRef">Block Header</a>
+        </h3>
+<p id="section-4.1-1">A DDB begins with a single-octet Version field:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<span id="name-ddb-block-header"></span><figure id="figure-1">
+          <div class="alignLeft art-ascii-art art-text artwork" id="section-4.1-2.1">
+<pre>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    |               TLV Fields ...                  |
++-+-+-+-+-+-+-+-+                                               +
+|                             ...                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-ddb-block-header" class="selfRef">DDB Block Header</a>
+          </figcaption></figure>
+<span class="break"></span><dl class="dlParallel" id="section-4.1-3">
+          <dt id="section-4.1-3.1">Version (1 octet):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-3.2">
+            <p id="section-4.1-3.2.1">The version of this DDB encoding. This specification defines version 0x01. A decoder that encounters an unknown version value <span class="bcp14">SHOULD</span> treat the entire block as uninterpretable and <span class="bcp14">MUST NOT</span> attempt to parse the TLV fields.<a href="#section-4.1-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.1-3.3"></dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-3.4">
+            <p id="section-4.1-3.4.1">Additive, backward-compatible extensions <span class="bcp14">SHOULD</span> be introduced by defining new TLV Type values or related registry entries without changing the Version value. The Version value is intended for wire-format or processing changes that are not backward compatible with earlier versions.<a href="#section-4.1-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.1-4">The remainder of the DDB is a sequence of zero or more TLV fields as defined in <a href="#tlv-field-structure" class="auto internal xref">Section 4.2</a>.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="tlv-field-structure">
+<section id="section-4.2">
+        <h3 id="name-tlv-field-structure">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-tlv-field-structure" class="section-name selfRef">TLV Field Structure</a>
+        </h3>
+<p id="section-4.2-1">Each TLV field has the following structure:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span id="name-tlv-field-structure-2"></span><figure id="figure-2">
+          <div class="alignLeft art-ascii-art art-text artwork" id="section-4.2-2.1">
+<pre>
+ 0                   1
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----------//----------+
+|     Type      |    Length     |         Value        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+----------//----------+
+</pre>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-tlv-field-structure-2" class="selfRef">TLV Field Structure</a>
+          </figcaption></figure>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-3">
+          <dt id="section-4.2-3.1">Type (1 octet):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-3.2">
+            <p id="section-4.2-3.2.1">Identifies the type of the field. Values are defined in <a href="#field-type-registry" class="auto internal xref">Section 4.3</a>. Value 0xFF is reserved. Values 0x09-0xEF are reserved for future assignment. Values 0xF0-0xFE are available for private/experimental use and <span class="bcp14">MUST NOT</span> be used in interoperability contexts.<a href="#section-4.2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-3.3"></dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-3.4">
+            <p id="section-4.2-3.4.1">The special value 0x00 is defined as a padding (NOP) octet. A 0x00 byte in the TLV stream is consumed as a single padding byte with no associated Length or Value fields. Encoders <span class="bcp14">MUST NOT</span> emit padding bytes except when byte-alignment is required by a specific transport framing. Decoders <span class="bcp14">MUST</span> skip 0x00 bytes and continue parsing the next TLV field.<a href="#section-4.2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-3.5">Length (1 octet):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-3.6">
+            <p id="section-4.2-3.6.1">The length of the Value field in octets. A Length of 0x00 indicates an empty value (valid for some field types; see individual field definitions).<a href="#section-4.2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-3.7"></dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-3.8">
+            <p id="section-4.2-3.8.1">When a length of 255 octets is insufficient for a given field (notably TXT Data for rich service descriptions), the following extended-length encoding is used: if the Length octet is 0xFF, it is followed by two additional octets that carry the actual length as a 16-bit unsigned integer in network byte order, and the Value starts after those two octets. This extended form <span class="bcp14">MUST NOT</span> be used when the actual length is &lt;= 254 octets.<a href="#section-4.2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.2-3.9">Value (Length octets):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-3.10">
+            <p id="section-4.2-3.10.1">The field value. Encoding is field-type-specific; see <a href="#field-type-registry" class="auto internal xref">Section 4.3</a>.<a href="#section-4.2-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.2-4">TLV fields <span class="bcp14">MUST</span> be processed in the order they appear. Encoders <span class="bcp14">MUST NOT</span> include more than one TLV field with the same Type value. Decoders that encounter duplicate Type values <span class="bcp14">MUST</span> use the last instance and discard earlier ones, in order to remain robust against malformed input.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">An implementation <span class="bcp14">MUST</span> ignore (skip past) any TLV field whose Type it does not recognize.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="field-type-registry">
+<section id="section-4.3">
+        <h3 id="name-field-type-registry">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-field-type-registry" class="section-name selfRef">Field Type Registry</a>
+        </h3>
+<p id="section-4.3-1">The following Type values are defined by this specification.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<div id="service-name">
+<section id="section-4.3.1">
+          <h4 id="name-service-name-type-0x01">
+<a href="#section-4.3.1" class="section-number selfRef">4.3.1. </a><a href="#name-service-name-type-0x01" class="section-name selfRef">Service Name (Type 0x01)</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.1-1">
+            <dt id="section-4.3.1-1.1">Value:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.1-1.2">
+              <p id="section-4.3.1-1.2.1">A UTF-8 string containing the DNS-SD Service Name. The string <span class="bcp14">MUST</span> consist of the Application Protocol label and the Transport Protocol label separated by a period, in the form "_application._transport". For example: "_ipp._tcp", "_printer._tcp", "_http._tcp". The leading underscore and the period separator are included literally. The trailing ".&lt;domain&gt;" portion (e.g., ".local") is NOT included; this is encoded separately using the Domain type (Type 0x05); see <a href="#domain" class="auto internal xref">Section 4.3.5</a>.<a href="#section-4.3.1-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.1-1.3">Constraints:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.1-1.4">
+              <p id="section-4.3.1-1.4.1"><span class="bcp14">MUST</span> be present in any DDB that claims to describe a DNS-SD service. The Application Protocol label <span class="bcp14">MUST</span> conform to <span>[<a href="#RFC6335" class="cite xref">RFC6335</a>]</span>, which limits service names to 15 characters. Including the mandatory leading underscore, separator period, and "_tcp" or "_udp" transport label, the maximum Service Name length is 1 + 15 + 1 + 1 + 3 = 21 octets (for "_tcp") or 1 + 15 + 1 + 1 + 3 = 21 octets (for "_udp"). Accordingly, Length <span class="bcp14">MUST</span> be between 3 and 21 octets. The string <span class="bcp14">MUST NOT</span> be null-terminated.<a href="#section-4.3.1-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.1-1.5">Example:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.1-1.6">
+              <p id="section-4.3.1-1.6.1">Type=0x01, Length=0x09, Value="_ipp._tcp" (9 octets).<a href="#section-4.3.1-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="service-instance-name-type-0x02">
+<section id="section-4.3.2">
+          <h4 id="name-service-instance-name-type-">
+<a href="#section-4.3.2" class="section-number selfRef">4.3.2. </a><a href="#name-service-instance-name-type-" class="section-name selfRef">Service Instance Name (Type 0x02)</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.2-1">
+            <dt id="section-4.3.2-1.1">Value:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-1.2">
+              <p id="section-4.3.2-1.2.1">A UTF-8 string containing only the &lt;Instance&gt; label of the DNS-SD Service Instance Name. This is the human-readable name that identifies the specific service instance (e.g., "My Color Printer" or "HP LaserJet 5200 (3rd floor)"). It <span class="bcp14">MUST NOT</span> include the Service Name or Domain components.<a href="#section-4.3.2-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.2-1.3">Constraints:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-1.4">
+              <p id="section-4.3.2-1.4.1">Length is limited to 63 octets (per DNS-SD <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 4.1.1, which limits the Instance label to 63 UTF-8 octets). A Length of 0 indicates that no specific Instance Name is being advertised (e.g., for general service-name discovery without an instance identifier). The string <span class="bcp14">MUST NOT</span> be null-terminated.<a href="#section-4.3.2-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.2-1.5">Example:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-1.6">
+              <p id="section-4.3.2-1.6.1">Type=0x02, Length=0x0F, Value="My Color Printer" (15 oct).<a href="#section-4.3.2-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="txt-data-type-0x03">
+<section id="section-4.3.3">
+          <h4 id="name-txt-data-type-0x03">
+<a href="#section-4.3.3" class="section-number selfRef">4.3.3. </a><a href="#name-txt-data-type-0x03" class="section-name selfRef">TXT Data (Type 0x03)</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.3-1">
+            <dt id="section-4.3.3-1.1">Value:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-1.2">
+              <p id="section-4.3.3-1.2.1">The DNS-SD TXT record payload in its canonical wire representation: a sequence of one or more length-prefixed strings, each string being a UTF-8 "key" or "key=value" pair as defined in <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 6. Each string is preceded by a single octet containing its length. There is no terminator after the last string; the end of the field is indicated by the TLV Length.<a href="#section-4.3.3-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.3-1.3"></dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-1.4">
+              <p id="section-4.3.3-1.4.1">This encoding matches the RDATA of a DNS TXT record directly. Receivers that already implement DNS-SD TXT record parsing can reuse that code to parse this field.<a href="#section-4.3.3-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.3-1.5"></dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-1.6">
+              <p id="section-4.3.3-1.6.1">TLV extended-length encoding <span class="bcp14">MUST</span> be used if the TXT data exceeds 254 octets; see <a href="#tlv-field-structure" class="auto internal xref">Section 4.2</a>.<a href="#section-4.3.3-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.3-1.7">Constraints:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-1.8">
+              <p id="section-4.3.3-1.8.1">The TXT Data field <span class="bcp14">MAY</span> represent an empty TXT record, encoded as a single string-length octet of 0x00 with a TLV Length of 0x01. This is equivalent to the DNS TXT RDATA for an empty record and is a valid encoding. When TXT metadata is present, the field contains one or more length-prefixed strings as described above. If the TXT Data field is omitted entirely, receivers <span class="bcp14">MUST NOT</span> infer any default TXT record content.<a href="#section-4.3.3-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.3-1.9">Example:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.3-1.10">
+              <p id="section-4.3.3-1.10.1">TXT strings "txtvers=1" (9 octets), "pdl=image/pwg-raster" (20 octets), and "rp=ipp/print" (12 octets), encoded as:<a href="#section-4.3.3-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<div class="alignLeft art-text artwork" id="section-4.3.3-2">
+<pre>
+0x09 t x t v e r s = 1
+0x14 p d l = i m a g e / p w g - r a s t e r
+0x0C r p = i p p / p r i n t
+</pre><a href="#section-4.3.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3.3-3">: Total: 3 + 9 + 20 + 12 = 44 octets. TLV: Type=0x03, Length=0x2C, Value=&lt;44 octets as above&gt;.<a href="#section-4.3.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="uuid-type-0x04">
+<section id="section-4.3.4">
+          <h4 id="name-uuid-type-0x04">
+<a href="#section-4.3.4" class="section-number selfRef">4.3.4. </a><a href="#name-uuid-type-0x04" class="section-name selfRef">UUID (Type 0x04)</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.4-1">
+            <dt id="section-4.3.4-1.1">Value:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.4-1.2">
+              <p id="section-4.3.4-1.2.1">A 128-bit (16-octet) UUID in the binary representation defined in <span>[<a href="#RFC9562" class="cite xref">RFC9562</a>]</span>, stored in network byte order. The UUID <span class="bcp14">SHOULD</span> be a UUID that uniquely identifies the specific service instance or the device hosting it. As an example, for an IPP print service, the value would match the value of the "UUID" key in the DNS-SD TXT record (where it is encoded as a hyphenated ASCII UUID string).<a href="#section-4.3.4-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.4-1.3">Constraints:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.4-1.4">
+              <p id="section-4.3.4-1.4.1">Length <span class="bcp14">MUST</span> be exactly 16 (0x10) octets. If a UUID is not available (nil UUID), omit the field rather than encoding all-zeros. (Encoding a nil UUID is valid if the sender intends to signal "UUID explicitly unknown/nil".)<a href="#section-4.3.4-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.4-1.5">Example:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.4-1.6">
+              <p id="section-4.3.4-1.6.1">UUID "12345678-1234-5678-1234-567812345678" encodes as 16 octets: 0x12 0x34 0x56 0x78 0x12 0x34 0x56 0x78 0x12 0x34 0x56 0x78 0x12 0x34 0x56 0x78. TLV: Type=0x04, Length=0x10, Value=&lt;16 octets&gt;.<a href="#section-4.3.4-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="domain">
+<section id="section-4.3.5">
+          <h4 id="name-domain-type-0x05">
+<a href="#section-4.3.5" class="section-number selfRef">4.3.5. </a><a href="#name-domain-type-0x05" class="section-name selfRef">Domain (Type 0x05)</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.5-1">
+            <dt id="section-4.3.5-1.1">Value:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.5-1.2">
+              <p id="section-4.3.5-1.2.1">A UTF-8 string containing the DNS domain in which this service is registered, without a trailing dot. For example: "local" (for mDNS) or "example.com" (for unicast DNS-SD).<a href="#section-4.3.5-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.5-1.3">Constraints:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.5-1.4">
+              <p id="section-4.3.5-1.4.1">Optional. If absent, receivers <span class="bcp14">MUST</span> assume the domain is "local" (i.e., the service is on the local link and discoverable via mDNS). Length 1 through 253 octets.<a href="#section-4.3.5-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.5-1.5">Note:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.5-1.6">
+              <p id="section-4.3.5-1.6.1">In the vast majority of short-range proximity scenarios, the domain is "local" and this field can be omitted to save space.<a href="#section-4.3.5-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="port-type-0x06">
+<section id="section-4.3.6">
+          <h4 id="name-port-type-0x06">
+<a href="#section-4.3.6" class="section-number selfRef">4.3.6. </a><a href="#name-port-type-0x06" class="section-name selfRef">Port (Type 0x06)</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.6-1">
+            <dt id="section-4.3.6-1.1">Value:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.6-1.2">
+              <p id="section-4.3.6-1.2.1">A 2-octet unsigned integer in network byte order containing the TCP or UDP port on which the service listens. This is the same value that would appear in the SRV record for this service instance.<a href="#section-4.3.6-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.6-1.3">Constraints:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.6-1.4">
+              <p id="section-4.3.6-1.4.1">Optional. Length <span class="bcp14">MUST</span> be exactly 2 (0x02) octets if present. For services where the port is deterministic from the Service Name (e.g., port 80 for "_http._tcp") this field may be omitted; its primary value is when the device is using a non-standard port.<a href="#section-4.3.6-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="subtype-list-type-0x07">
+<section id="section-4.3.7">
+          <h4 id="name-subtype-list-type-0x07">
+<a href="#section-4.3.7" class="section-number selfRef">4.3.7. </a><a href="#name-subtype-list-type-0x07" class="section-name selfRef">Subtype List (Type 0x07)</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.7-1">
+            <dt id="section-4.3.7-1.1">Value:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.7-1.2">
+              <p id="section-4.3.7-1.2.1">A sequence of length-prefixed UTF-8 strings, one per DNS-SD subtype that the service instance supports. Each subtype string is the subtype label only (without the "_sub.&lt;service&gt;.&lt;domain&gt;" suffix), preceded by its 1-octet length. Example: the subtype "_universal" would be encoded as 0x0A followed by "_universal" (10 octets).<a href="#section-4.3.7-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.7-1.3">Constraints:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.7-1.4">
+              <p id="section-4.3.7-1.4.1">Optional. Included only when the service advertises one or more DNS-SD subtypes. Each individual subtype label <span class="bcp14">MUST NOT</span> exceed 63 octets.<a href="#section-4.3.7-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="hostname">
+<section id="section-4.3.8">
+          <h4 id="name-hostname-type-0x08">
+<a href="#section-4.3.8" class="section-number selfRef">4.3.8. </a><a href="#name-hostname-type-0x08" class="section-name selfRef">Hostname (Type 0x08)</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-4.3.8-1">
+            <dt id="section-4.3.8-1.1">Value:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.8-1.2">
+              <p id="section-4.3.8-1.2.1">An ASCII string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "printer.local" or "device-abc.example.com".<a href="#section-4.3.8-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.8-1.3"></dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.8-1.4">
+              <p id="section-4.3.8-1.4.1">The string is encoded in ASCII (not UTF-8) and <span class="bcp14">MUST</span> consist only of DNS label characters (letters, digits, hyphens) and period separators. Internationalized hostnames (IDN) <span class="bcp14">MUST</span> be encoded in their ACE (ASCII-Compatible Encoding) form per <span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span>. The string <span class="bcp14">MUST NOT</span> include a trailing dot and <span class="bcp14">MUST NOT</span> be null-terminated.<a href="#section-4.3.8-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.8-1.5">Constraints:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.8-1.6">
+              <p id="section-4.3.8-1.6.1">Optional. Length <span class="bcp14">MUST</span> be between 1 and 253 octets, consistent with the maximum length of a fully qualified domain name. If absent, the client <span class="bcp14">MUST</span> obtain the SRV target hostname via DNS-SD once an IP connection is established. Including this field is <span class="bcp14">RECOMMENDED</span> when the hostname is needed for TLS SNI certificate validation prior to IP-level name resolution.<a href="#section-4.3.8-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.8-1.7">Note:</dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.8-1.8">
+              <p id="section-4.3.8-1.8.1">This field carries the SRV record target hostname only. IP address resolution still requires DNS-SD or mDNS once an IP association is available. This field does not replace the SRV record; it carries its target hostname for contexts where TLS validation metadata is beneficial pre-connection.<a href="#section-4.3.8-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="encoding-rules">
+<section id="section-4.4">
+        <h3 id="name-encoding-rules">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-encoding-rules" class="section-name selfRef">Encoding Rules</a>
+        </h3>
+<ol start="1" type="1" class="normal type-1" id="section-4.4-1">
+<li id="section-4.4-1.1">
+            <p id="section-4.4-1.1.1">Begin the DDB with the Version octet (0x01 for this version).<a href="#section-4.4-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.4-1.2">
+            <p id="section-4.4-1.2.1">Encode the Service Name field (Type 0x01) first. This is the primary identifier of what kind of service is being described.<a href="#section-4.4-1.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.4-1.3">
+            <p id="section-4.4-1.3.1">Encode remaining fields in no required order, though the ordering Service Name -&gt; Instance Name -&gt; TXT -&gt; UUID -&gt; others is <span class="bcp14">RECOMMENDED</span> as it places the most informative fields first, which is useful when receivers truncate parsing on constrained implementations.<a href="#section-4.4-1.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.4-1.4">
+            <p id="section-4.4-1.4.1">Omit any optional field that has no value to convey, to minimize encoded size.<a href="#section-4.4-1.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.4-1.5">
+            <p id="section-4.4-1.5.1">All string values are UTF-8 encoded and <span class="bcp14">MUST NOT</span> be null-terminated. String lengths in TLV Length fields count octets, not characters.<a href="#section-4.4-1.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.4-1.6">
+            <p id="section-4.4-1.6.1">A single TLV field using extended-length encoding may carry a value of at most 65,535 octets, occupying 1 (Type) + 3 (0xFF escape + 2-octet extended length) + 65,535 (Value) = 65,539 octets. No absolute maximum is imposed on the total DDB length; practical transports impose far tighter limits (see <a href="#transport-mappings" class="auto internal xref">Section 5</a>), and implementations <span class="bcp14">SHOULD</span> reject DDBs that exceed the limit documented for the transport in use.<a href="#section-4.4-1.6.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+</section>
+</div>
+<div id="decoding-rules-and-forward-compatibility">
+<section id="section-4.5">
+        <h3 id="name-decoding-rules-and-forward-">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-decoding-rules-and-forward-" class="section-name selfRef">Decoding Rules and Forward Compatibility</a>
+        </h3>
+<ol start="1" type="1" class="normal type-1" id="section-4.5-1">
+<li id="section-4.5-1.1">
+            <p id="section-4.5-1.1.1">Read the Version octet. If not 0x01, treat the block as uninterpretable (do not attempt TLV parsing).<a href="#section-4.5-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.5-1.2">
+            <p id="section-4.5-1.2.1">Process TLV fields in order. For each field:<a href="#section-4.5-1.2.1" class="pilcrow">¶</a></p>
+<p id="section-4.5-1.2.2">
+a. Read the Type octet. If Type is 0x00, this is a padding byte; consume it and continue to the next field.<a href="#section-4.5-1.2.2" class="pilcrow">¶</a></p>
+<p id="section-4.5-1.2.3">
+b. Read the Length octet. If Length is 0xFF, read the next two octets as a 16-bit big-endian extended length.<a href="#section-4.5-1.2.3" class="pilcrow">¶</a></p>
+<p id="section-4.5-1.2.4">
+c. Read Value octets (count given by the resolved length).<a href="#section-4.5-1.2.4" class="pilcrow">¶</a></p>
+<p id="section-4.5-1.2.5">
+d. If the Type is known, process according to <a href="#field-type-registry" class="auto internal xref">Section 4.3</a>.<a href="#section-4.5-1.2.5" class="pilcrow">¶</a></p>
+<p id="section-4.5-1.2.6">
+e. If the Type is unknown, skip the Value bytes.<a href="#section-4.5-1.2.6" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.5-1.3">
+            <p id="section-4.5-1.3.1">Continue until all octets of the DDB have been consumed.<a href="#section-4.5-1.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.5-1.4">
+            <p id="section-4.5-1.4.1">A DDB with zero TLV fields after the Version octet is valid (though conveys no information); implementations <span class="bcp14">SHOULD NOT</span> generate such a block.<a href="#section-4.5-1.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.5-1.5">
+            <p id="section-4.5-1.5.1">A DDB that is truncated (insufficient octets to complete the current TLV) <span class="bcp14">MUST</span> be treated as malformed; already-decoded fields <span class="bcp14">MAY</span> be used at the discretion of the application.<a href="#section-4.5-1.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+</section>
+</div>
+<div id="ddb-payload-identity">
+<section id="section-4.6">
+        <h3 id="name-ddb-payload-identity-and-me">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-ddb-payload-identity-and-me" class="section-name selfRef">DDB Payload Identity and Media Types</a>
+        </h3>
+<p id="section-4.6-1">The canonical DDB payload is the exact octet sequence defined by <a href="#ddb-format" class="auto internal xref">Section 4.6, Paragraph 4</a>: one Version octet followed by zero or more TLV fields. Transport mappings in <a href="#transport-mappings" class="auto internal xref">Section 5</a> carry this same payload without altering its internal format.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+<p id="section-4.6-2">When a content-type identifier is needed, a DDB payload can be identified as either:<a href="#section-4.6-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.6-3.1">
+            <p id="section-4.6-3.1.1">MIME media type "application/vnd.dnssd.ddb"; or<a href="#section-4.6-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.6-3.2">
+            <p id="section-4.6-3.2.1">NDEF External Type "ietf.org:dnssd-ddb".<a href="#section-4.6-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<div id="ddb-format">
+<p id="section-4.6-4">These identifiers name the same DDB payload format; they do not define different encodings.<a href="#section-4.6-4" class="pilcrow">¶</a></p>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="transport-mappings">
+<section id="section-5">
+      <h2 id="name-transport-mappings">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-transport-mappings" class="section-name selfRef">Transport Mappings</a>
+      </h2>
+<p id="section-5-1">The primary concrete transport mappings described in this specification are Bluetooth Low Energy TDS and NDEF MIME/External Type records. NFC Forum Verb Service Descriptors are also specified for compact service hints in constrained Descriptor Data fields. Additional guidance is provided for other containers that can carry an opaque octet sequence.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="transport-discovery-service-tds-ad-structure">
+<section id="section-5.1">
+        <h3 id="name-transport-discovery-service">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-transport-discovery-service" class="section-name selfRef">Transport Discovery Service (TDS) AD Structure</a>
+        </h3>
+<p id="section-5.1-1">The Bluetooth Core Specification Supplement defines the Transport Discovery Service (TDS) AD structure (AD Type 0x26), which is specifically designed to advertise that a device supports a service accessible over a secondary transport (e.g., Bluetooth BR/EDR, Wi-Fi, or USB). TDS is the preferred Bluetooth Low Energy mechanism for service bootstrapping prior to IP association and is a natural fit for carrying DDB content.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">A TDS AD structure contains one or more Organization Blocks. Each Organization Block has the following format:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<span id="name-tds-organization-block"></span><figure id="figure-3">
+          <div class="alignLeft art-ascii-art art-text artwork" id="section-5.1-3.1">
+<pre>
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--------//--------+
+|  Org ID (1B)  | Data Len (1B) | Tran Caps (1B) | Transport Data |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--------//--------+
+</pre>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-tds-organization-block" class="selfRef">TDS Organization Block</a>
+          </figcaption></figure>
+<p id="section-5.1-4">To carry a DDB in a TDS Organization Block:<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.1-5">
+          <dt id="section-5.1-5.1">Organization ID:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.1-5.2">
+            <p id="section-5.1-5.2.1">The Organization ID is the one assigned to the transport for which the DDB describes the service (e.g., the Wi-Fi Alliance Organization ID for a Wi-Fi service, or the Bluetooth SIG Organization ID for a Bluetooth service). Pending formal assignment of a DNS-SD Organization ID, implementors typically use an Organization ID registered for the target transport and document the DDB encoding via the Transport Data field.<a href="#section-5.1-5.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.1-5.3">Transport Data:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.1-5.4">
+            <p id="section-5.1-5.4.1">The DDB (Version octet + TLV fields) is placed directly in the Transport Data portion of the Organization Block. No additional framing is required.<a href="#section-5.1-5.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.1-5.5">Transport Capabilities byte:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.1-5.6">
+            <p id="section-5.1-5.6.1">Set per the TDS specification for the target transport (e.g., Role bits, TDS Control Point supported bit).<a href="#section-5.1-5.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-5.1-6">A TDS AD structure carrying a minimal DDB (Service Name only) for "_ipp._tcp":<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-7">
+<pre>
+AD Length:     varies (see below)
+AD Type:       0x26 (Transport Discovery Data)
+Org ID:        &lt;transport-specific&gt;
+Data Length:   0x0D  (12 DDB octets + 1 Tran Caps octet = 13)
+Tran Caps:     &lt;transport-specific&gt;
+Transport Data (DDB, 12 octets):
+   01          ; DDB Version = 1
+   01 09       ; Type=Service Name, Length=9
+   5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+</pre><a href="#section-5.1-7" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-8">Note: The TDS payload budget is more generous than legacy advertising: the full TDS AD structure occupies one of several AD structures in a 31-octet advertising packet, but TDS is also commonly used with extended advertising where the 255-octet limit allows richer DDB content including Instance Name and TXT Data.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<div id="size-considerations">
+<section id="section-5.1.1">
+          <h4 id="name-size-considerations">
+<a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-size-considerations" class="section-name selfRef">Size Considerations</a>
+          </h4>
+<p id="section-5.1.1-1">When carrying a DDB in a TDS Organization Block within legacy Bluetooth Low Energy advertising (31-octet advertising data limit), the practical DDB payload budget is:<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.1.1-2">
+            <dt id="section-5.1.1-2.1">Available in AD payload:</dt>
+            <dd style="margin-left: 1.5em" id="section-5.1.1-2.2">
+              <p id="section-5.1.1-2.2.1">29 octets (31 minus 1-octet length and 1-octet AD Type).<a href="#section-5.1.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-5.1.1-2.3">TDS Organization Block overhead:</dt>
+            <dd style="margin-left: 1.5em" id="section-5.1.1-2.4">
+              <p id="section-5.1.1-2.4.1">3 octets (1-octet Org ID, 1-octet Data Length, 1-octet Transport Capabilities).<a href="#section-5.1.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-5.1.1-2.5">Practical DDB budget (legacy):</dt>
+            <dd style="margin-left: 1.5em" id="section-5.1.1-2.6">
+              <p id="section-5.1.1-2.6.1">26 octets.<a href="#section-5.1.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-5.1.1-3">A minimal DDB with only a 9-octet Service Name field ("_ipp._tcp") encodes as:<a href="#section-5.1.1-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1.1-4">
+<pre>
+1 (Version) + 1 (Type) + 1 (Length) + 9 (Value) = 12 octets.
+</pre><a href="#section-5.1.1-4" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1.1-5">This fits very comfortably within the 26-octet TDS budget.<a href="#section-5.1.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1.1-6">Adding a UUID field (Type 0x04, Length 16): +18 octets = 30 octets total; this does not fit within the 26-octet TDS budget of legacy advertising.<a href="#section-5.1.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1.1-7">Including TXT Data or a long Instance Name in legacy TDS advertising is generally not feasible. Deployments requiring richer metadata typically use extended advertising, which supports much larger Organization Block payloads (up to ~252 octets for DDB content).<a href="#section-5.1.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="nfc-forum-verb-record-descriptor-data">
+<section id="section-5.2">
+        <h3 id="name-nfc-forum-verb-record-descr">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-nfc-forum-verb-record-descr" class="section-name selfRef">NFC Forum Verb Record Descriptor Data</a>
+        </h3>
+<p id="section-5.2-1">NFC Forum Verb records can be included in an NFC Forum Connection Handover message <span>[<a href="#NFC-CH-1-5" class="cite xref">NFC-CH-1-5</a>]</span> to convey information about supported services and their association with included carrier transport information.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<div id="context-identifier-assignment">
+<section id="section-5.2.1">
+          <h4 id="name-context-identifier-assignme">
+<a href="#section-5.2.1" class="section-number selfRef">5.2.1. </a><a href="#name-context-identifier-assignme" class="section-name selfRef">Context Identifier Assignment</a>
+          </h4>
+<p id="section-5.2.1-1">The NFC Forum Verb RTD <span>[<a href="#NFC-VERB-RTD" class="cite xref">NFC-VERB-RTD</a>]</span> carries one or more Service Descriptors. Each Service Descriptor carries a Context Identifier (1 octet) that identifies the service context.<a href="#section-5.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-2">The NFC Forum Verb RTD specification assigns Context Identifier 0x02 for "IETF IAB / IANA" and this was intended to be used for DNS-SD. This specification uses Context Identifier 0x02 in the Service Descriptor to indicate DNS-SD service context.<a href="#section-5.2.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="descriptor-data-encoding">
+<section id="section-5.2.2">
+          <h4 id="name-descriptor-data-encoding">
+<a href="#section-5.2.2" class="section-number selfRef">5.2.2. </a><a href="#name-descriptor-data-encoding" class="section-name selfRef">Descriptor Data Encoding</a>
+          </h4>
+<p id="section-5.2.2-1">When DDB content is carried in the Descriptor Data field of an NFC Forum Verb Service Descriptor, the Descriptor Data field is limited to 1-32 octets by the NFC Forum Verb RTD specification. As a result, Descriptor Data carriage is generally limited to minimal DDB content (for example, Version + Service Name TLV), and senders <span class="bcp14">SHOULD</span> use Descriptor Data carriage only when the selected DDB fields fit within 32 octets.<a href="#section-5.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2.2-2">Senders <span class="bcp14">MUST NOT</span> truncate a TLV field to force it to fit. If the desired DDB content exceeds 32 octets, senders <span class="bcp14">SHOULD</span> carry the full DDB in a separate NDEF record as described in <a href="#ndef-ddb-record" class="auto internal xref">Section 5.3</a>.<a href="#section-5.2.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2.2-3">The Verb RTD Flags field carries the standard seek/provide bits as applicable. The External Record ID can reference an NDEF record elsewhere in the same NDEF message that carries complementary device information. For NFC Connection Handover, this reference will typically provide the ID of an Alternative Carrier record (type "ac") embedded within the Handover Request or Handover Select record.<a href="#section-5.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.2.2-4">Within Descriptor Data carriage, senders typically prioritize Service Name and <span class="bcp14">MAY</span> include one short service-critical TXT key/value when it fits (for example, "rp=..."). UUID <span class="bcp14">MAY</span> be included only if the resulting DDB still fits; otherwise, UUID can be conveyed in a companion Device IP Identity or Device Information record. Service Instance Name and larger TXT payloads generally require <a href="#ndef-ddb-record" class="auto internal xref">Section 5.3</a>.<a href="#section-5.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.2.2-5">Example Verb record Service Descriptor carrying a DNS-SD service for "_ipp._tcp":<a href="#section-5.2.2-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2.2-6">
+<pre>
+Context Identifier:  &lt;assigned value&gt;
+Flags/Length byte:  Provide=1, Seek=0, External Record ID
+   present=0, Descriptor Data Length - 1 = 11 (0x8B total;
+   exact bit placement per [NFC-VERB-RTD])
+Descriptor Data Length:  12 octets (stored as length-1 = 11
+   in the Verb RTD Flags/Length field per the spec)
+Descriptor Data:
+   01         ; DDB Version = 1
+   01 09      ; Type=Service Name, Length=9
+   5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+</pre><a href="#section-5.2.2-6" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="referencing-a-separate-ndef-ddb-record">
+<section id="section-5.2.3">
+          <h4 id="name-referencing-a-separate-ndef">
+<a href="#section-5.2.3" class="section-number selfRef">5.2.3. </a><a href="#name-referencing-a-separate-ndef" class="section-name selfRef">Referencing a Separate NDEF DDB Record</a>
+          </h4>
+<p id="section-5.2.3-1">When complete DNS-SD metadata does not fit in Descriptor Data, senders <span class="bcp14">SHOULD</span> place the full DDB in a separate NDEF record and use the Verb Service Descriptor to provide service context and linkage.<a href="#section-5.2.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2.3-2.1">
+              <p id="section-5.2.3-2.1.1">The Verb RTD Flags field carries the standard seek/provide bits as applicable.<a href="#section-5.2.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5.2.3-2.2">
+              <p id="section-5.2.3-2.2.1">The External Record ID can reference an NDEF record elsewhere in the same NDEF message that carries the DDB payload. For NFC Connection Handover, this reference may also identify an Alternative Carrier record (type "ac") embedded within the Handover Request or Handover Select record when transport association is required.<a href="#section-5.2.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5.2.3-2.3">
+              <p id="section-5.2.3-2.3.1">The referenced DDB payload record carries the payload defined in <a href="#ddb-payload-identity" class="auto internal xref">Section 4.6</a> and is encoded in NDEF per <a href="#ndef-ddb-record" class="auto internal xref">Section 5.3</a>.<a href="#section-5.2.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="ndef-ddb-record">
+<section id="section-5.3">
+        <h3 id="name-ndef-ddb-record-payload-map">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-ndef-ddb-record-payload-map" class="section-name selfRef">NDEF DDB Record Payload Mapping (MIME or External Type)</a>
+        </h3>
+<p id="section-5.3-1">This section defines the NDEF record payload mapping used either as a standalone NFC carriage or as the record referenced by <a href="#referencing-a-separate-ndef-ddb-record" class="auto internal xref">Section 5.2.3</a>. A DDB can be carried as the payload of an NDEF MIME type record or an NDEF External Type record:<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.3-2">
+          <dt id="section-5.3-2.1">MIME type record:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-2.2">
+            <p id="section-5.3-2.2.1">Uses MIME type "application/vnd.dnssd.ddb". The NDEF record's payload is the DDB payload defined in <a href="#ddb-payload-identity" class="auto internal xref">Section 4.6</a>. No additional framing is required.<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-2.3">External Type record:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-2.4">
+            <p id="section-5.3-2.4.1">Uses type "ietf.org:dnssd-ddb" (or a vendor-specific type of the form "com.vendor:dnssd-ddb"). The NDEF record's payload is the DDB payload defined in <a href="#ddb-payload-identity" class="auto internal xref">Section 4.6</a>.<a href="#section-5.3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-5.3-3">In either case, the NDEF record is typically positioned after a URI record in the NDEF message to preserve reliable OS-level handling on common platforms (iOS, Android, Windows).<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">Both encoding forms are suitable for long-term interoperability. The MIME type form ("application/vnd.dnssd.ddb") is preferred when the receiving application can rely on MIME type dispatch, as it uses the standard IANA-registered mechanism for content identification. The External Type form ("ietf.org:dnssd-ddb") is an acceptable alternative for environments where NDEF External Type dispatch is well-supported and a formal MIME type registration has not yet been completed.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="relationship-to-dns-sd">
+<section id="section-6">
+      <h2 id="name-relationship-to-dns-sd">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-relationship-to-dns-sd" class="section-name selfRef">Relationship to DNS-SD</a>
+      </h2>
+<div id="deriving-dns-sd-records-from-a-ddb">
+<section id="section-6.1">
+        <h3 id="name-deriving-dns-sd-records-fro">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-deriving-dns-sd-records-fro" class="section-name selfRef">Deriving DNS-SD Records from a DDB</a>
+        </h3>
+<p id="section-6.1-1">Given a DDB and an IP address for the device, a client can synthesize the following DNS-SD records:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-6.1-2">
+          <dt id="section-6.1-2.1">PTR record:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-2.2">
+            <p id="section-6.1-2.2.1">Owner name: "&lt;service-name&gt;.&lt;domain&gt;." (where domain defaults to "local" if absent); RDATA: "&lt;instance&gt;.&lt;service-name&gt;.&lt;domain&gt;." (where instance comes from Service Instance Name field).<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-6.1-2.3">SRV record:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-2.4">
+            <p id="section-6.1-2.4.1">Owner name: "&lt;instance&gt;.&lt;service-name&gt;.&lt;domain&gt;."; RDATA: &lt;priority&gt; &lt;weight&gt; &lt;port&gt; &lt;hostname&gt;. If the Hostname field (Type 0x08) is present in the DDB, use that value as the SRV target hostname. Otherwise, the SRV target hostname is not known until DNS-SD is queried after IP association.<a href="#section-6.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-6.1-2.5">TXT record:</dt>
+          <dd style="margin-left: 1.5em" id="section-6.1-2.6">
+            <p id="section-6.1-2.6.1">Owner name: "&lt;instance&gt;.&lt;service-name&gt;.&lt;domain&gt;."; RDATA: the TXT Data field verbatim (already in DNS TXT wire form).<a href="#section-6.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-6.1-3">If the UUID field is present but the TXT Data field does not already contain a "UUID=..." key=value pair, a client <span class="bcp14">SHOULD</span> synthesize the UUID TXT record key from the binary UUID (formatting it as a lowercase hyphen-separated hex UUID string: "UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx") and add it to the reconstructed TXT record.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="constructing-a-ddb-from-dns-sd-records">
+<section id="section-6.2">
+        <h3 id="name-constructing-a-ddb-from-dns">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-constructing-a-ddb-from-dns" class="section-name selfRef">Constructing a DDB from DNS-SD Records</a>
+        </h3>
+<p id="section-6.2-1">To serialize DNS-SD records into a DDB:<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.2-2">
+<li id="section-6.2-2.1">
+            <p id="section-6.2-2.1.1">Set Version = 0x01.<a href="#section-6.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.2-2.2">
+            <p id="section-6.2-2.2.1">Extract the Service Name from the PTR record owner name.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.2-2.3">
+            <p id="section-6.2-2.3.1">Extract the Instance Label from the Service Instance Name.<a href="#section-6.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.2-2.4">
+            <p id="section-6.2-2.4.1">Copy the TXT record RDATA verbatim into the TXT Data field.<a href="#section-6.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.2-2.5">
+            <p id="section-6.2-2.5.1">If the TXT record contains a "UUID" key, extract the value, parse it as a UUID, and encode it as the UUID field.<a href="#section-6.2-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.2-2.6">
+            <p id="section-6.2-2.6.1">Copy Port from the SRV record.<a href="#section-6.2-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.2-2.7">
+            <p id="section-6.2-2.7.1">Copy the SRV target hostname into the Hostname field (Type 0x08) if TLS SNI or pre-connection hostname knowledge is desirable. Omit if the hostname is derivable from context (e.g., the hostname will be resolvable via mDNS once connected).<a href="#section-6.2-2.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.2-2.8">
+            <p id="section-6.2-2.8.1">Omit Domain if it is "local".<a href="#section-6.2-2.8.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+</section>
+</div>
+<div id="domain-handling">
+<section id="section-6.3">
+        <h3 id="name-domain-handling">
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-domain-handling" class="section-name selfRef">Domain Handling</a>
+        </h3>
+<p id="section-6.3-1">The domain "local" is used for link-local mDNS services. Because this is the default in proximity bootstrapping scenarios, it <span class="bcp14">SHOULD</span> be omitted from DDBs to save space.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-2">When using DNS-SD with unicast DNS for Wide-Area DNS-SD (as described in <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 11), the domain <span class="bcp14">MUST</span> be included in the DDB if it is not "local".<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.3-3">A DDB decoder that does not find a Domain field <span class="bcp14">MUST</span> synthesize "&lt;instance&gt;.&lt;service-name&gt;.local." for DNS-SD lookups.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="examples">
+<section id="section-7">
+      <h2 id="name-examples">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
+      </h2>
+<div id="minimal-printer-service-ddb">
+<section id="section-7.1">
+        <h3 id="name-minimal-printer-service-ddb">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-minimal-printer-service-ddb" class="section-name selfRef">Minimal Printer Service DDB</a>
+        </h3>
+<p id="section-7.1-1">This DDB conveys only the Service Name, sufficient for a "this device provides IPP printing" beacon:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.1-2">
+<pre>
+01          ; Version = 1
+01 09       ; Type=Service Name, Length=9
+5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+</pre><a href="#section-7.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-7.1-3">Total: 12 octets.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="full-printer-service-ddb-with-txt-and-uuid">
+<section id="section-7.2">
+        <h3 id="name-full-printer-service-ddb-wi">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-full-printer-service-ddb-wi" class="section-name selfRef">Full Printer Service DDB with TXT and UUID</a>
+        </h3>
+<p id="section-7.2-1">A more complete DDB for an IPP printer named "Conference Room Printer" (23 UTF-8 octets):<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.2-2">
+<pre>
+01          ; Version = 1
+
+01 09       ; Type=Service Name, Length=9
+5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+
+02 17       ; Type=Instance Name, Length=23
+43 6F 6E 66 65 72 65 6E 63 65 20 52 6F 6F 6D 20
+50 72 69 6E 74 65 72              ; "Conference Room Printer"
+
+03 2C       ; Type=TXT Data, Length=44
+09          ; string length 9
+74 78 74 76 65 72 73 3D 31       ; "txtvers=1"
+14          ; string length 20
+70 64 6C 3D 69 6D 61 67 65 2F 70 77 67 2D 72 61 73 74 65 72
+                    ; "pdl=image/pwg-raster"
+0C          ; string length 12
+72 70 3D 69 70 70 2F 70 72 69 6E 74  ; "rp=ipp/print"
+
+04 10       ; Type=UUID, Length=16
+A1 B2 C3 D4 E5 F6 07 08
+89 9A AB BC CD DE EF F0          ; UUID bytes
+
+06 02       ; Type=Port, Length=2
+02 7F                            ; port 631 (0x027F)
+</pre><a href="#section-7.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-7.2-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="bluetooth-low-energy-tds-advertisement-payload-hex-annotated">
+<section id="section-7.3">
+        <h3 id="name-bluetooth-low-energy-tds-ad">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-bluetooth-low-energy-tds-ad" class="section-name selfRef">Bluetooth Low Energy TDS Advertisement Payload (Hex Annotated)</a>
+        </h3>
+<p id="section-7.3-1">Legacy advertising payload (31 octets total) carrying a minimal DDB in a Transport Discovery Service (TDS) AD structure (AD Type 0x26):<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.3-2">
+<pre>
+10          ; AD Length: 16 octets follow
+26          ; AD Type: Transport Discovery Data (TDS)
+FE          ; Organization ID (example transport-specific value)
+0D          ; Data Length: 13 octets (Tran Caps + DDB)
+00          ; Transport Capabilities (example value)
+01          ; DDB Version = 1
+01 09       ; TLV: Type=Service Name, Length=9
+5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+</pre><a href="#section-7.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-7.3-3">Total AD structure: 17 octets (1 length + 16 payload). Remaining advertising space: 31 - 17 = 14 octets for additional AD structures (e.g., Flags, Local Name, TX Power Level).<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="nfc-verb-record-with-minimal-ddb-descriptor-data">
+<section id="section-7.4">
+        <h3 id="name-nfc-verb-record-with-minima">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-nfc-verb-record-with-minima" class="section-name selfRef">NFC Verb Record with Minimal DDB Descriptor Data</a>
+        </h3>
+<p id="section-7.4-1">This example shows an NFC Forum Verb record Service Descriptor carrying a minimal DDB for "_ipp._tcp". The Verb RTD framing and the DDB payload are shown separately for clarity.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<p id="section-7.4-2">Verb RTD Service Descriptor framing (per <span>[<a href="#NFC-VERB-RTD" class="cite xref">NFC-VERB-RTD</a>]</span>):<a href="#section-7.4-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.4-3">
+<pre>
+Context Identifier:  0x42
+   (Hypothetical private/experimental value pending formal NFC
+    Forum assignment for DNS-SD Data Block.)
+
+Flags/Length byte:  0x8B
+   Bits [7]:    Provide = 1 (device is providing this service)
+   Bits [6]:    Seek    = 0
+   Bits [5]:    External Record ID present = 0
+   Bits [4:0]:  Descriptor Data Length - 1 = 11 (12 octets - 1)
+   Combined: 1 0 0 0 1011 = 0x8B
+   (Exact bit layout per [NFC-VERB-RTD] Section 4.)
+
+Descriptor Data (12 octets):
+   01             ; DDB Version = 1
+   01 09          ; TLV Type=Service Name (0x01), Length=9
+   5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+</pre><a href="#section-7.4-3" class="pilcrow">¶</a>
+</div>
+<p id="section-7.4-4">The DDB fits comfortably within the 32-octet maximum for the Descriptor Data field defined by <span>[<a href="#NFC-VERB-RTD" class="cite xref">NFC-VERB-RTD</a>]</span>. For richer content (for example, Service Instance Name, TXT Data, and Port), senders <span class="bcp14">SHOULD</span> carry the full DDB in an NDEF MIME or External Type record (<a href="#ndef-ddb-record" class="auto internal xref">Section 5.3</a>) and use the Verb record for service context and linkage. When compact Descriptor Data is used, senders can prioritize a short service-critical TXT key/value (for example, "rp=...") while conveying UUID through companion Device IP Identity or Device Information records.<a href="#section-7.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="design-notes-and-alternatives-considered">
+<section id="section-8">
+      <h2 id="name-design-notes-and-alternativ">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-design-notes-and-alternativ" class="section-name selfRef">Design Notes and Alternatives Considered</a>
+      </h2>
+<div id="why-tlv-and-not-cbor-or-json">
+<section id="section-8.1">
+        <h3 id="name-why-tlv-and-not-cbor-or-jso">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-why-tlv-and-not-cbor-or-jso" class="section-name selfRef">Why TLV and Not CBOR or JSON</a>
+        </h3>
+<p id="section-8.1-1">CBOR <span>[<a href="#RFC8949" class="cite xref">RFC8949</a>]</span> and JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> are both viable encoding options with good tooling. TLV was chosen for the following reasons:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.1-2.1">
+            <p id="section-8.1-2.1.1">Minimal overhead per field: a simple string field costs 2 octets of overhead (Type + Length) versus CBOR's 1+ octets for a key plus 1+ octets for the string header -- comparable at small scale, but TLV's fixed 2-octet overhead per field is more predictable.<a href="#section-8.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.1-2.2">
+            <p id="section-8.1-2.2.1">Implementation simplicity: TLV parsing requires only arithmetic on byte arrays; no recursive descent or schema lookup is needed. This supports implementation on very constrained devices (e.g., embedded firmware).<a href="#section-8.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.1-2.3">
+            <p id="section-8.1-2.3.1">DNS-SD TXT data is already in a length-prefixed string encoding; embedding it verbatim in a TLV field avoids any re-encoding.<a href="#section-8.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.1-2.4">
+            <p id="section-8.1-2.4.1">CBOR is a strong alternative and <span class="bcp14">SHOULD</span> be explored in a future revision, particularly if the broader IETF context moves toward CBOR-based service advertisement encodings.<a href="#section-8.1-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="why-dns-sd-string-encoding-and-not-numeric-types">
+<section id="section-8.2">
+        <h3 id="name-why-dns-sd-string-encoding-">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-why-dns-sd-string-encoding-" class="section-name selfRef">Why DNS-SD String Encoding and Not Numeric Types</a>
+        </h3>
+<p id="section-8.2-1">An alternative design would replace the human-readable Service Name string with a compact numeric identifier (similar to how Bluetooth has 16-bit Service Class UUIDs). This was considered and rejected for the following reasons:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-2.1">
+            <p id="section-8.2-2.1.1">DNS-SD's value proposition is that service names are declared using DNS labels, which are human-readable and do not require a centralized numeric registry for new service names.<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.2">
+            <p id="section-8.2-2.2.1">Introducing numeric type codes would require an IANA registry cross-referencing DNS-SD service names, tying the DDB format to an ongoing registration process.<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.3">
+            <p id="section-8.2-2.3.1">The string representation is compact enough for the vast majority of service names (e.g., "_ipp._tcp" is 9 octets).<a href="#section-8.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.2-3">The UUID field (Type 0x04) uses a binary encoding (16 octets) rather than the hyphenated ASCII form (36 octets) because the numeric form saves 20 octets and is unambiguously reversible.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="uuid-encoding">
+<section id="section-8.3">
+        <h3 id="name-uuid-encoding">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-uuid-encoding" class="section-name selfRef">UUID Encoding</a>
+        </h3>
+<p id="section-8.3-1">The binary UUID is stored in network byte order per the RFC 9562 definition. Implementations should be aware that Bluetooth SIG UUIDs are typically stored in little-endian order within Bluetooth Low Energy packet structures; if a UUID from a DDB is being placed into or read from a Bluetooth Low Energy Service Data AD structure, byte-order conversion is required.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="txt-record-encoding">
+<section id="section-8.4">
+        <h3 id="name-txt-record-encoding">
+<a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-txt-record-encoding" class="section-name selfRef">TXT Record Encoding</a>
+        </h3>
+<p id="section-8.4-1">Reusing the DNS TXT RDATA wire format for the TXT Data field means that existing DNS-SD TXT record parsers can process this field without modification. An alternative was to encode each key=value pair as a separate TLV sub-field; this was rejected as it would add complexity and would not reduce size for typical TXT records.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="iana">
+<section id="section-9">
+      <h2 id="name-iana-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-9-1">This specification, if published, requests the following IANA actions:<a href="#section-9-1" class="pilcrow">¶</a></p>
+<div id="dns-sd-data-block-tlv-type-registry">
+<section id="section-9.1">
+        <h3 id="name-dns-sd-data-block-tlv-type-">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-dns-sd-data-block-tlv-type-" class="section-name selfRef">DNS-SD Data Block TLV Type Registry</a>
+        </h3>
+<p id="section-9.1-1">IANA is requested to create a new registry "DNS-SD Data Block TLV Types" under a new "DNS-SD Data Block" registry group. The registry uses the following columns:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.1-2">
+          <dt id="section-9.1-2.1">Value:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.2">
+            <p id="section-9.1-2.2.1">1-octet TLV Type value.<a href="#section-9.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.3">Name:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.4">
+            <p id="section-9.1-2.4.1">Short descriptive name of the field.<a href="#section-9.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.5">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.6">
+            <p id="section-9.1-2.6.1">RFC or other document defining the field.<a href="#section-9.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.1-2.7">Notes:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.8">
+            <p id="section-9.1-2.8.1">Additional information.<a href="#section-9.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-9.1-3">Registration Policy: Values 0x01-0xEF use "Specification Required" <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>. Values 0xF0-0xFE are "Private Use". Value 0xFF is "Reserved". Value 0x00 is defined as a Padding (NOP) octet (<a href="#tlv-field-structure" class="auto internal xref">Section 4.2</a>) and does not participate in the assignment pool.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.1-4">Initial entries (defined by this specification):<a href="#section-9.1-4" class="pilcrow">¶</a></p>
+<span id="name-dns-sd-data-block-tlv-types"></span><table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-dns-sd-data-block-tlv-types" class="selfRef">DNS-SD Data Block TLV Types</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+              <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x00</td>
+              <td class="text-left" rowspan="1" colspan="1">Padding (NOP)</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x01</td>
+              <td class="text-left" rowspan="1" colspan="1">Service Name</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x02</td>
+              <td class="text-left" rowspan="1" colspan="1">Service Instance Name</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x03</td>
+              <td class="text-left" rowspan="1" colspan="1">TXT Data</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x04</td>
+              <td class="text-left" rowspan="1" colspan="1">UUID</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x05</td>
+              <td class="text-left" rowspan="1" colspan="1">Domain</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x06</td>
+              <td class="text-left" rowspan="1" colspan="1">Port</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x07</td>
+              <td class="text-left" rowspan="1" colspan="1">Subtype List</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x08</td>
+              <td class="text-left" rowspan="1" colspan="1">Hostname</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x09-0xEF</td>
+              <td class="text-left" rowspan="1" colspan="1">Unassigned</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0xF0-0xFE</td>
+              <td class="text-left" rowspan="1" colspan="1">Private Use</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0xFF</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="nfc-forum-context-identifier">
+<section id="section-9.2">
+        <h3 id="name-nfc-forum-context-identifie">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-nfc-forum-context-identifie" class="section-name selfRef">NFC Forum Context Identifier</a>
+        </h3>
+<p id="section-9.2-1">If the approach described in <a href="#nfc-forum-verb-record-descriptor-data" class="auto internal xref">Section 5.2</a> is adopted, a Context Identifier assignment request should be submitted to the NFC Forum. This specification does not request an NFC Forum assignment, as that process is outside the IETF's purview.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="mime-type-registration">
+<section id="section-9.3">
+        <h3 id="name-mime-type-registration">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-mime-type-registration" class="section-name selfRef">MIME Type Registration</a>
+        </h3>
+<p id="section-9.3-1">If the MIME type form described in <a href="#ndef-ddb-record" class="auto internal xref">Section 5.3</a> is used, a request to register "application/vnd.dnssd.ddb" should be submitted to IANA per <span>[<a href="#RFC6838" class="cite xref">RFC6838</a>]</span>. This specification does not formally request that registration at this draft stage.<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security">
+<section id="section-10">
+      <h2 id="name-security-considerations">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-10-1">DDBs are carried in unauthenticated transports (Bluetooth Low Energy advertisements and NFC passive tags). The following security considerations apply:<a href="#section-10-1" class="pilcrow">¶</a></p>
+<div id="spoofing-and-impersonation">
+<section id="section-10.1">
+        <h3 id="name-spoofing-and-impersonation">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-spoofing-and-impersonation" class="section-name selfRef">Spoofing and Impersonation</a>
+        </h3>
+<p id="section-10.1-1">Any device within Bluetooth Low Energy/NFC range can transmit a DDB claiming any Service Name, Instance Name, or UUID. Receivers <span class="bcp14">MUST NOT</span> rely on DDB content alone to establish trust. A DDB is a discovery aid; any security-relevant properties (authentication, authorization) <span class="bcp14">MUST</span> be established over the application protocol after connectivity is established (e.g., TLS over IPP, 802.1X, device attestation).<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy-persistent-identifiers">
+<section id="section-10.2">
+        <h3 id="name-privacy-persistent-identifi">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-privacy-persistent-identifi" class="section-name selfRef">Privacy: Persistent Identifiers</a>
+        </h3>
+<p id="section-10.2-1">The UUID field, if reused across proximity events, constitutes a stable identifier that can be used to track a device's location or owner. Devices <span class="bcp14">SHOULD</span>:<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-10.2-2.1">
+            <p id="section-10.2-2.1.1">Use randomized UUIDs for DDBs carried in Bluetooth Low Energy advertising if the service UUID is not already stable (e.g., print services that expose a stable mDNS UUID publicly may choose to accept this).<a href="#section-10.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-10.2-2.2">
+            <p id="section-10.2-2.2.1">For Bluetooth Low Energy specifically, this mirrors the considerations for Bluetooth Low Energy address randomization: persistent service identifiers in advertisements create the same tracking surface.<a href="#section-10.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-10.2-3">The Instance Name (Service Instance Label) often contains human-readable device names (e.g., "Jane's MacBook Printer") which are personally identifying. Devices <span class="bcp14">SHOULD</span> allow users to customize or omit Instance Names in proximity advertisements.<a href="#section-10.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="denial-of-service">
+<section id="section-10.3">
+        <h3 id="name-denial-of-service">
+<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-denial-of-service" class="section-name selfRef">Denial of Service</a>
+        </h3>
+<p id="section-10.3-1">A malicious sender can flood Bluetooth Low Energy scanner queues or NFC readers with large numbers of DDB-carrying packets. Receivers <span class="bcp14">SHOULD</span> implement rate limiting and deduplication.<a href="#section-10.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="data-integrity">
+<section id="section-10.4">
+        <h3 id="name-data-integrity">
+<a href="#section-10.4" class="section-number selfRef">10.4. </a><a href="#name-data-integrity" class="section-name selfRef">Data Integrity</a>
+        </h3>
+<p id="section-10.4-1">DDB transport containers (Bluetooth Low Energy, NFC) do not provide cryptographic integrity protection. An on-path attacker in close physical proximity could modify advertisement contents. Applications that require integrity <span class="bcp14">SHOULD</span> sign DDB content using an application-layer digital signature (e.g., a device certificate or vendor-defined signing mechanism) conveyed out-of-band or in a companion NDEF record, if the transport and deployment context support it.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sensitive-data-in-txt-records">
+<section id="section-10.5">
+        <h3 id="name-sensitive-data-in-txt-recor">
+<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-sensitive-data-in-txt-recor" class="section-name selfRef">Sensitive Data in TXT Records</a>
+        </h3>
+<p id="section-10.5-1">The TXT Data field can carry arbitrary key=value pairs. Senders <span class="bcp14">MUST NOT</span> include long-lived secrets (Wi-Fi PSKs, passwords, private keys) in the TXT Data field of a DDB, as this data is transmitted in cleartext over short-range radio.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-11">
+      <h2 id="name-references">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-11.1">
+        <h3 id="name-normative-references">
+<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="BT-TDS">[BT-TDS]</dt>
+        <dd>
+<span class="refAuthor">Bluetooth SIG</span>, <span class="refTitle">"Transport Discovery Service 1.1"</span>, <time datetime="2020" class="refDate">2020</time>, <span>&lt;<a href="https://www.bluetooth.com/specifications/specs/transport-discovery-service-1-1/">https://www.bluetooth.com/specifications/specs/transport-discovery-service-1-1/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="NFC-VERB-RTD">[NFC-VERB-RTD]</dt>
+        <dd>
+<span class="refAuthor">NFC Forum</span>, <span class="refTitle">"NFC Forum Well Known Type: Verb RTD Technical Specification"</span>, <span class="seriesInfo">Version 1.0</span>, <time datetime="2024" class="refDate">2024</time>, <span>&lt;<a href="https://nfc-forum.org/build/specifications/verb-rtd-technical-specification/">https://nfc-forum.org/build/specifications/verb-rtd-technical-specification/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6335">[RFC6335]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Eggert, L.</span>, <span class="refAuthor">Touch, J.</span>, <span class="refAuthor">Westerlund, M.</span>, and <span class="refAuthor">S. Cheshire</span>, <span class="refTitle">"Internet Assigned Numbers Authority (IANA) Procedures for the Management of the Service Name and Transport Protocol Port Number Registry"</span>, <span class="seriesInfo">BCP 165</span>, <span class="seriesInfo">RFC 6335</span>, <span class="seriesInfo">DOI 10.17487/RFC6335</span>, <time datetime="2011-08" class="refDate">August 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6335">https://www.rfc-editor.org/rfc/rfc6335</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6763">[RFC6763]</dt>
+        <dd>
+<span class="refAuthor">Cheshire, S.</span> and <span class="refAuthor">M. Krochmal</span>, <span class="refTitle">"DNS-Based Service Discovery"</span>, <span class="seriesInfo">RFC 6763</span>, <span class="seriesInfo">DOI 10.17487/RFC6763</span>, <time datetime="2013-02" class="refDate">February 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6763">https://www.rfc-editor.org/rfc/rfc6763</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9562">[RFC9562]</dt>
+      <dd>
+<span class="refAuthor">Davis, K.</span>, <span class="refAuthor">Peabody, B.</span>, and <span class="refAuthor">P. Leach</span>, <span class="refTitle">"Universally Unique IDentifiers (UUIDs)"</span>, <span class="seriesInfo">RFC 9562</span>, <span class="seriesInfo">DOI 10.17487/RFC9562</span>, <time datetime="2024-05" class="refDate">May 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9562">https://www.rfc-editor.org/rfc/rfc9562</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-11.2">
+        <h3 id="name-informative-references">
+<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="BT-ASSIGNED-NUMBERS">[BT-ASSIGNED-NUMBERS]</dt>
+        <dd>
+<span class="refAuthor">Bluetooth SIG</span>, <span class="refTitle">"Assigned Numbers"</span>, <time datetime="2024" class="refDate">2024</time>, <span>&lt;<a href="https://www.bluetooth.com/specifications/assigned-numbers/">https://www.bluetooth.com/specifications/assigned-numbers/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="BT-CORE">[BT-CORE]</dt>
+        <dd>
+<span class="refAuthor">Bluetooth SIG</span>, <span class="refTitle">"Bluetooth Core Specification"</span>, <span class="seriesInfo">Version 5.4</span>, <time datetime="2023-01" class="refDate">January 2023</time>, <span>&lt;<a href="https://www.bluetooth.com/specifications/specs/core-54/">https://www.bluetooth.com/specifications/specs/core-54/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="NFC-CH-1-5">[NFC-CH-1-5]</dt>
+        <dd>
+<span class="refAuthor">NFC Forum</span>, <span class="refTitle">"NFC Forum Connection Handover Technical Specification"</span>, <span class="seriesInfo">Version 1.5</span>, <time datetime="2019" class="refDate">2019</time>, <span>&lt;<a href="https://nfc-forum.org/build/specifications/connection-handover-technical-specification/">https://nfc-forum.org/build/specifications/connection-handover-technical-specification/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="NFC-DI-RTD">[NFC-DI-RTD]</dt>
+        <dd>
+<span class="refAuthor">NFC Forum</span>, <span class="refTitle">"NFC Forum Well Known Type: Device Information RTD Technical Specification"</span>, <span class="seriesInfo">Version 1.0</span>, <time datetime="2024" class="refDate">2024</time>, <span>&lt;<a href="https://nfc-forum.org/build/specifications/device-information-rtd-technical-specification/">https://nfc-forum.org/build/specifications/device-information-rtd-technical-specification/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4122">[RFC4122]</dt>
+        <dd>
+<span class="refAuthor">Leach, P.</span>, <span class="refAuthor">Mealling, M.</span>, and <span class="refAuthor">R. Salz</span>, <span class="refTitle">"A Universally Unique IDentifier (UUID) URN Namespace"</span>, <span class="seriesInfo">RFC 4122</span>, <span class="seriesInfo">DOI 10.17487/RFC4122</span>, <time datetime="2005-07" class="refDate">July 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4122">https://www.rfc-editor.org/rfc/rfc4122</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5891">[RFC5891]</dt>
+        <dd>
+<span class="refAuthor">Klensin, J.</span>, <span class="refTitle">"Internationalized Domain Names in Applications (IDNA): Protocol"</span>, <span class="seriesInfo">RFC 5891</span>, <span class="seriesInfo">DOI 10.17487/RFC5891</span>, <time datetime="2010-08" class="refDate">August 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5891">https://www.rfc-editor.org/rfc/rfc5891</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6762">[RFC6762]</dt>
+        <dd>
+<span class="refAuthor">Cheshire, S.</span> and <span class="refAuthor">M. Krochmal</span>, <span class="refTitle">"Multicast DNS"</span>, <span class="seriesInfo">RFC 6762</span>, <span class="seriesInfo">DOI 10.17487/RFC6762</span>, <time datetime="2013-02" class="refDate">February 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6762">https://www.rfc-editor.org/rfc/rfc6762</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6838">[RFC6838]</dt>
+        <dd>
+<span class="refAuthor">Freed, N.</span>, <span class="refAuthor">Klensin, J.</span>, and <span class="refAuthor">T. Hansen</span>, <span class="refTitle">"Media Type Specifications and Registration Procedures"</span>, <span class="seriesInfo">BCP 13</span>, <span class="seriesInfo">RFC 6838</span>, <span class="seriesInfo">DOI 10.17487/RFC6838</span>, <time datetime="2013-01" class="refDate">January 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6838">https://www.rfc-editor.org/rfc/rfc6838</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7558">[RFC7558]</dt>
+        <dd>
+<span class="refAuthor">Lynn, K.</span>, <span class="refAuthor">Cheshire, S.</span>, <span class="refAuthor">Blanchet, M.</span>, and <span class="refAuthor">D. Migault</span>, <span class="refTitle">"Requirements for Scalable DNS-Based Service Discovery (DNS-SD) / Multicast DNS (mDNS) Extensions"</span>, <span class="seriesInfo">RFC 7558</span>, <span class="seriesInfo">DOI 10.17487/RFC7558</span>, <time datetime="2015-07" class="refDate">July 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7558">https://www.rfc-editor.org/rfc/rfc7558</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8259">[RFC8259]</dt>
+        <dd>
+<span class="refAuthor">Bray, T., Ed.</span>, <span class="refTitle">"The JavaScript Object Notation (JSON) Data Interchange Format"</span>, <span class="seriesInfo">STD 90</span>, <span class="seriesInfo">RFC 8259</span>, <span class="seriesInfo">DOI 10.17487/RFC8259</span>, <time datetime="2017-12" class="refDate">December 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8259">https://www.rfc-editor.org/rfc/rfc8259</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8949">[RFC8949]</dt>
+      <dd>
+<span class="refAuthor">Bormann, C.</span> and <span class="refAuthor">P. Hoffman</span>, <span class="refTitle">"Concise Binary Object Representation (CBOR)"</span>, <span class="seriesInfo">STD 94</span>, <span class="seriesInfo">RFC 8949</span>, <span class="seriesInfo">DOI 10.17487/RFC8949</span>, <time datetime="2020-12" class="refDate">December 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8949">https://www.rfc-editor.org/rfc/rfc8949</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-A">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-A-1">TBD -- to be populated during the IETF process.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Smith Kennedy</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:smitty.standards@gmail.com" class="email">smitty.standards@gmail.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
