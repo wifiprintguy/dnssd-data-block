@@ -1,9 +1,4 @@
 ---
-###
-# Internet-Draft Markdown Template
-#
-# This template uses kramdown-rfc: https://github.com/cabo/kramdown-rfc
-###
 title: "DNS-SD Data Block Encoding for Non-DNS Transports"
 abbrev: "DNS-SD Data Block"
 category: std
