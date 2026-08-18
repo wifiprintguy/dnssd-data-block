@@ -15,8 +15,8 @@ keyword:
  - bluetooth low energy
  - nfc
 venue:
-  mail: dnssd@ietf.org
-  arch: https://datatracker.ietf.org/wg/dnssd/about/
+  mail: "dnssd@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/dnssd/"
 
 author:
  -
