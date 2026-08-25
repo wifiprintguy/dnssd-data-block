@@ -22,3 +22,9 @@ draft-kennedy-dnssd-data-block.xml
 package-lock.json
 report.xml
 !requirements.txt
+.refcache/
+*.xml
+*.txt
+*.html
+*.pdf
+.DS_Store
