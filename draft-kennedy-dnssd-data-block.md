@@ -36,15 +36,33 @@ normative:
         organization: Bluetooth SIG
     date: 2020
     target: https://www.bluetooth.com/specifications/specs/transport-discovery-service-1-1/
-  NFC-VERB-RTD:
-    title: "NFC Forum Well Known Type: Verb RTD Technical Specification"
+  NFC-CH:
+    title: "Connection Handover Technical Specification"
     author:
       -
         organization: NFC Forum
-    date: 2024
+    date: 2018
+    seriesinfo:
+      Version: "1.4"
+    target: https://nfc-forum.org/build/specifications/
+  NFC-NDEF:
+    title: "Data Exchange Format (NDEF) Technical Specification"
+    author:
+      -
+        organization: NFC Forum
+    date: 2006
     seriesinfo:
       Version: "1.0"
-    target: https://nfc-forum.org/build/specifications/verb-rtd-technical-specification/
+    target: https://nfc-forum.org/build/specifications/
+  NFC-VERB-RTD:
+    title: "Verb RTD Technical Specification"
+    author:
+      -
+        organization: NFC Forum
+    date: 2015
+    seriesinfo:
+      Version: "1.0"
+    target: https://nfc-forum.org/build/specifications/
 
 informative:
   RFC4122:
@@ -92,23 +110,25 @@ informative:
 
 --- abstract
 
-This specification defines the DNS-SD Data Block (DDB), a compact, self-describing TLV encoding of selected DNS-SD service information for use in non-DNS transports such as, but not limited to, Bluetooth Low Energy Transport Discovery Service {{BT-TDS}} or NFC Verb NDEF Records {{NFC-VERB-RTD}}. The DDB format and processing rules provide interoperable carriage of fields including Service Name, Service Instance Name, TXT data, UUID, and other information fields. This specification does not define a new DNS record type and does not replace or modify DNS-SD or mDNS protocol behavior.
+The DNS-SD Data Block (DDB) is a compact, self-describing TLV encoded container providing a common, interoperable and extensible format for conveying DNS-SD service information over non-IP transports including, but not limited to, ancillary discovery technologies such as Bluetooth Low Energy Transport Discovery Service {{BT-TDS}} or NFC Verb NDEF Records {{NFC-VERB-RTD}}.
 
 --- middle
 
 # Introduction {#intro}
 
-DNS-based Service Discovery {{RFC6763}} over Multicast DNS {{RFC6762}} is widely deployed for zero-configuration service advertisement on local IP networks. Printers, media servers, file-sharing services, and many other services are advertised and discovered via DNS-SD over mDNS.
+DNS-based Service Discovery {{RFC6763}} is widely deployed for service advertisement on IP networks. Printers, media servers, file-sharing, and many other types of services are advertised and discovered via DNS-SD.
 
-However, there are scenarios where these instances of services can be advertised using short range or proximity focused technologies such as Bluetooth Low Energy or NFC, and could be discovered by clients if the DNS-SD service information was provided over these non-IP based transports or when those transports have yet to be brought up (what is sometimes referred to as "pre-association" service discovery). Examples of this include the following:
+There are circumstances where ancillary advertisement and discovery technologies can improve service advertisement and discovery coverage. Some network environments may have non-trivial network infrastructure topologies that complicate the use of mDNS, but that are also not provisioned with infrastructure DNS-SD. There are also peer-to-peer wireless IP networking technologies used for transient communications and could support DNS-SD services, but that suffer from a poor user experience due to a lack of a standard way to provide the DNS-SD service information before a connection has been established (what is sometimes referred to as "pre-association service discovery"). Both of these could benefit from using ancillary short range peer-to-peer or proximity focused advertisement and discovery technologies to convey DNS-SD service information.
 
-* An IPP printer in an office advertises its IPP print service using Bluetooth Low Energy Transport Discovery Service (TDS) to provide address and service information to physically proximate clients to let them connect to the print service without depending on DNS-SD via mDNS or infrastructure.
+Examples include the following:
 
-* A television with an NFC interface can provide rich information about how a client can connect to it, and what streaming services it supports.
+* An IPP printer in an office with a segmented network topology and limited DNS-SD infrastructure advertises its IPP print service using Bluetooth Low Energy Transport Discovery Service (TDS) {{BT-TDS}} to provide service information to physically proximate clients.
 
-In each of these environments, device makers currently have no standard encoding for DNS-SD service information. This leads to fragmentation: each vendor invents its own representation, making cross-vendor interoperability difficult or unnecessarily bloating payload sizes.
+* A television with an NFC interface in a hotel room advertises its media streaming services and supported carrier types. A client tapped to the TV reviews the advertised connection carriers and services and offers its user a selected optimal pathway before engaging in the process of connecting to the TV.
 
-This specification defines the DNS-SD Data Block (DDB): a compact, TLV-based binary encoding of the DNS-SD service description fields most relevant to discovery and connection bootstrapping. The DDB is designed to:
+For each of these scenarios and the ancillary discovery technologies used, there is a need to represent DNS-SD service information in a format that is not native to the technology's transport. The technology's standards organization developers are looking to the DNS-SD community to define this structure since DNS-SD is out of their domain of expertise. 
+
+This document defines the DDB format and associated processing and transport mapping rules for interoperable use. The DDB is designed to:
 
 * Fit in constrained transport payloads (e.g., <= 29 bytes for a Bluetooth Low Energy legacy AD type payload unit, with guidelines for larger payloads).
 
@@ -116,9 +136,7 @@ This specification defines the DNS-SD Data Block (DDB): a compact, TLV-based bin
 
 * Round-trip losslessly to and from DNS-SD SRV + TXT records for the fields it encodes.
 
-* Serve as the data payload in Bluetooth Low Energy Transport Discovery Service (TDS) organization blocks, NDEF MIME/External Type records, and similar constrained containers. In NFC Forum Verb records, Descriptor Data is generally limited to compact/minimal DDB content due to strict size limits.
-
-This specification is a Standards Track specification. It defines the DDB format and associated processing and transport mapping rules for interoperable use. Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum).
+Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum).
 
 # Conventions and Terminology
 
@@ -130,13 +148,13 @@ DDB (DNS-SD Data Block):
 : The compact binary encoding defined in this specification.
 
 Service Name:
-: The DNS-SD service name label pair, consisting of an Application Protocol label and a Transport Protocol label, for example "_ipp._tcp" or "_http._tcp". As defined in {{RFC6763}}, Section 7, and registered per {{RFC6335}}. Within a DDB, this value is carried in TLV Type 0x01 (see {{service-name}}).
+: The DNS-SD service name label pair, consisting of an Application Protocol label and a Transport Protocol label, for example "_ipp._tcp" or "_http._tcp", as defined in {{RFC6763}}, Section 7.
 
 Service Instance Name:
-: The full DNS name of a DNS-SD service instance, composed of an Instance Label, a Service Name, and a Domain, for example "My Printer._ipp._tcp.local". When used in a DDB, the Domain component is typically omitted (defaulting to "local") and the Instance and Service components are stored separately.
+: The full DNS name of a DNS-SD service instance, as defined in {{RFC6763}}, Section 4.1.
 
-Service Instance Label:
-: The \<Instance\> component of a Service Instance Name. A human-readable string (up to 63 UTF-8 octets) that identifies a particular service instance.
+Instance Name:
+: The \<Instance\> component of a Service Instance Name, as defined in {{RFC6763}}, Section 4.1.1.
 
 TXT Data:
 : The DNS-SD TXT record payload, encoded as a sequence of length-prefixed strings, each string being a UTF-8 key=value pair or a bare key, as specified in {{RFC6763}}, Section 6.
@@ -145,7 +163,7 @@ UUID:
 : A Universally Unique Identifier as defined in {{RFC9562}} (formerly {{RFC4122}}), encoded as 16 octets in network byte order following the binary representation defined therein.
 
 TLV:
-: Type-Length-Value encoding, where each field is represented as a 1-octet type code, a 1-octet or 2-octet length, and a value of that length.
+: Type-Length-Value - a binary encoding scheme consisting of a type code field indicating the type, a length field indicating the length of the value field, and a value field containing the actual payload. The size of the type and length fields are typically fixed.
 
 Bluetooth Low Energy:
 : Bluetooth Low Energy, as specified by the Bluetooth SIG in the Bluetooth Core Specification.
@@ -157,59 +175,8 @@ NFC Forum Verb RTD:
 : The NFC Forum Well-Known Type "V" (0x56), defining a record type for advertising service descriptors within an NDEF message. Defined in {{NFC-VERB-RTD}}.
 
 NDEF:
-: NFC Data Exchange Format, defined by the NFC Forum.
+: NFC Data Exchange Format, defined by the NFC Forum {{NFC-NDEF}}.
 
-mDNS:
-: Multicast DNS {{RFC6762}}.
-
-# DNS-SD Background and Motivation
-
-## DNS-SD Service Description Model
-
-DNS-SD {{RFC6763}} uses three DNS record types to describe a service instance:
-
-PTR record:
-: Maps a Service Name to one or more Service Instance Names. Example:
-
-~~~
-_ipp._tcp.local. PTR "My Printer._ipp._tcp.local."
-~~~
-
-SRV record:
-: Maps a Service Instance Name to a target hostname, port, priority, and weight. Example:
-
-~~~
-"My Printer._ipp._tcp.local." SRV 0 0 631 printer.local.
-~~~
-
-TXT record:
-: Carries key=value metadata associated with a Service Instance Name. Example:
-
-~~~
-"My Printer._ipp._tcp.local." TXT "txtvers=1" "pdl=application/pdf"
-~~~
-
-Some services define a UUID key/value for their TXT records (e.g., the "UUID" key for _ipp._tcp print service instances).
-
-When a client seeks a specific service name, it first queries for PTR records matching that service name (for example, "_ipp._tcp" for IPP print services). The PTR response contains one or more Service Instance Names -- the specific instances of that service name that are available. To learn the metadata associated with a particular instance, the client performs a TXT record query using that Service Instance Name. To actually connect to the service, the client performs an SRV record query to resolve the Service Instance Name to a hostname and port number. The hostname is then resolved via A or AAAA records to determine the IPv4 or IPv6 address. In this way, the client progressively retrieves the information needed: service instances of the desired service name, metadata for each instance, and network connectivity details.
-
-## Transport Gap
-
-On IP networks, clients can issue DNS-SD queries to retrieve this information via mDNS {{RFC6762}} or infrastructure DNS. Other short-range peer-to-peer transports can provide service advertisement data in frames that precede or operate independently of IP network association before the peers have established a trust relationship ("paired"):
-
-Bluetooth Low Energy:
-: Bluetooth Low Energy advertisements reach nearby devices even with no IP connectivity. However, Bluetooth Low Energy advertisement payloads are tightly constrained (31 octets for legacy advertising; 255 octets for extended advertising without fragmentation). The Transport Discovery Service (TDS) {{BT-TDS}} provides a standardized Bluetooth Low Energy mechanism for advertising access to services over a secondary transport, making it a natural container for DDB content.
-
-NFC:
-: An NFC tag or peer carries data in NDEF records, including the NFC Forum Verb RTD which is specifically designed for service advertisement. Because Verb Descriptor Data is limited to 1-32 octets, it is suitable only for compact hints (for example, Service Name only). For complete DDB content, DNS-SD service information is carried in an NDEF MIME or External Type record, optionally referenced from a Verb Service Descriptor.
-
-In both environments, a compact, standard encoding of DNS-SD service metadata would enable:
-
-(a) Clients to identify relevant services without IP-level DNS queries.
-
-(b) Consistent cross-vendor encoding that any compliant parser can decode.
-
-(c) Smooth transition: once an IP connection is available, the decoded fields map directly to expected DNS-SD records.
 
 # DNS-SD Data Block (DDB) Format
 
@@ -237,7 +204,7 @@ The remainder of the DDB is a sequence of zero or more TLV fields as defined in 
 
 ## TLV Field Structure {#tlv-field-structure}
 
-Each TLV field has the following structure:
+Each TLV field in a DDB has the following structure:
 
 ~~~ ascii-art
  0                   1
@@ -776,7 +743,7 @@ The UUID field, if reused across proximity events, constitutes a stable identifi
 
 * For Bluetooth Low Energy specifically, this mirrors the considerations for Bluetooth Low Energy address randomization: persistent service identifiers in advertisements create the same tracking surface.
 
-The Instance Name (Service Instance Label) often contains human-readable device names (e.g., "Jane's MacBook Printer") which are personally identifying. Devices SHOULD allow users to customize or omit Instance Names in proximity advertisements.
+The Instance Name often contains human-readable device names (e.g., "Jane's MacBook Printer") which are personally identifying. Devices SHOULD allow users to customize or omit Instance Names in proximity advertisements.
 
 ## Denial of Service
 
