@@ -1,3 +1,5 @@
+.DS_Store
+*.xml
 *.html
 *.pdf
 *.redxml
@@ -6,7 +8,6 @@
 *.upload
 *~
 .tags
-/*-[0-9][0-9].xml
 /.*.mk
 /.gems/
 /.idea/
@@ -18,13 +19,5 @@
 /versioned/
 Gemfile.lock
 archive.json
-draft-kennedy-dnssd-data-block.xml
 package-lock.json
-report.xml
 !requirements.txt
-.refcache/
-*.xml
-*.txt
-*.html
-*.pdf
-.DS_Store
