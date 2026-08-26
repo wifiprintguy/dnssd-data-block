@@ -69,7 +69,7 @@ informative:
 
 --- abstract
 
-The DNS-SD Data Block (DDB) is a compact, self-describing TLV encoded container providing a common, interoperable and extensible format for conveying DNS-SD service information over non-IP transports, such as short-range peer-to-peer or proximity-based advertisement and discovery technologies (for example, Bluetooth Low Energy Transport Discovery Service {{BT-TDS}} or NFC Verb NDEF Records {{NFC-VERB}}).
+The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports, such as short-range peer-to-peer or proximity-based advertisement and discovery technologies (for example, Bluetooth Low Energy Transport Discovery Service {{BT-TDS}} or NFC Verb NDEF Records {{NFC-VERB}}).
 
 --- middle
 
