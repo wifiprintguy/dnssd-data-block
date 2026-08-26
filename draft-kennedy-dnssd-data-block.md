@@ -56,7 +56,7 @@ informative:
       Version: "1.0"
     target: https://nfc-forum.org/build/specifications/
   IPPEVE:
-    title: "PWG 5100.14-2020: IPP Everywhere™ v1.1"
+    title: "PWG 5100.14-2020: IPP Everywhere v1.1"
     author:
       -
         organization: ISTO Printer Working Group
@@ -69,7 +69,7 @@ informative:
 
 --- abstract
 
-The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports, such as short-range peer-to-peer or proximity-based advertisement and discovery technologies (for example, Bluetooth Low Energy Transport Discovery Service {{BT-TDS}} or NFC Verb NDEF Records {{NFC-VERB}}).
+The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports used by short-range peer-to-peer or proximity-based advertisement and discovery technologies such as the Bluetooth Low Energy Transport Discovery Service or NFC Verb NDEF Records.
 
 --- middle
 
@@ -77,7 +77,9 @@ The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS
 
 DNS-based Service Discovery {{RFC6763}} is widely deployed for service advertisement on IP networks. Printers, media servers, file-sharing, and many other types of services are advertised and discovered via DNS-SD.
 
-There are circumstances where ancillary advertisement and discovery technologies can improve service advertisement and discovery coverage. Some network environments may have non-trivial network infrastructure topologies that complicate the use of mDNS, but that are also not provisioned with infrastructure DNS-SD. There are also peer-to-peer wireless IP networking technologies used for transient communications and could support DNS-SD services, but that suffer from a poor user experience due to a lack of a standard way to provide the DNS-SD service information before a connection has been established (what is sometimes referred to as "pre-association service discovery"). Both of these could benefit from using ancillary short range peer-to-peer or proximity focused advertisement and discovery technologies to convey DNS-SD service information.
+There are circumstances where ancillary advertisement and discovery technologies can improve service advertisement and discovery coverage. Some network environments may have non-trivial network infrastructure topologies that complicate the use of mDNS {{RFC6762}}, but that are also not provisioned with infrastructure DNS-SD. There are also peer-to-peer wireless IP networking technologies used for transient communications and could support DNS-SD services, but that suffer from a poor user experience due to a lack of a standard way to provide the DNS-SD service information before a connection has been established (what is sometimes referred to as "pre-association service discovery"). Both of these could benefit from using ancillary short range peer-to-peer or proximity focused advertisement and discovery technologies to convey DNS-SD service information.
+
+This problem is related to, but distinct from, the scaling problem addressed by {{RFC7558}}: solutions to that problem extend DNS-SD's reach within IP networks that already have IP connectivity established. DDB instead addresses the complementary case of conveying DNS-SD service information before IP connectivity exists at all, or where none is expected to exist. In deployments where physical proximity between devices can be assumed, such as the segmented-network scenario below, DDB carried over an ancillary technology can also serve as an alternative to deploying {{RFC7558}}-class scaling solutions, sidestepping the network-segmentation problem entirely rather than solving it via Scalable DNS-SD.
 
 Examples include the following:
 
@@ -320,7 +322,7 @@ Constraints:
 ### Hostname (Type 0x08) {#hostname}
 
 Value:
-: An ASCII string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "printer.local" or "device-abc.example.com".
+: An ASCII string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "device-abc.example.com".
 
 : The string is encoded in ASCII (not UTF-8) and MUST consist only of DNS label characters (letters, digits, hyphens) and period separators, per the preferred name syntax of {{RFC1035}}, Section 2.3.1. Internationalized hostnames (IDN) MUST be encoded in their ACE (ASCII-Compatible Encoding) form per {{RFC5891}}. The string MUST NOT include a trailing dot and MUST NOT be null-terminated.
 
