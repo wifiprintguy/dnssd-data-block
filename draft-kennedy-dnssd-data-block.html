@@ -7,7 +7,7 @@
 <title>DNS-SD Data Block Encoding for Non-DNS Transports</title>
 <meta content="Smith Kennedy" name="author">
 <meta content="
-       The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports, such as short-range peer-to-peer or proximity-based advertisement and discovery technologies (for example, Bluetooth Low Energy Transport Discovery Service   or NFC Verb NDEF Records  ). 
+       The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports used by short-range peer-to-peer or proximity-based advertisement and discovery technologies such as the Bluetooth Low Energy Transport Discovery Service or NFC Verb NDEF Records. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="dns-sd" name="keyword">
@@ -1078,7 +1078,7 @@ svg {
 <h1 id="title">DNS-SD Data Block Encoding for Non-DNS Transports</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports, such as short-range peer-to-peer or proximity-based advertisement and discovery technologies (for example, Bluetooth Low Energy Transport Discovery Service <span>[<a href="#BT-TDS" class="cite xref">BT-TDS</a>]</span> or NFC Verb NDEF Records <span>[<a href="#NFC-VERB" class="cite xref">NFC-VERB</a>]</span>).<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports used by short-range peer-to-peer or proximity-based advertisement and discovery technologies such as the Bluetooth Low Energy Transport Discovery Service or NFC Verb NDEF Records.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1299,30 +1299,31 @@ svg {
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
 <p id="section-1-1">DNS-based Service Discovery <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span> is widely deployed for service advertisement on IP networks. Printers, media servers, file-sharing, and many other types of services are advertised and discovered via DNS-SD.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">There are circumstances where ancillary advertisement and discovery technologies can improve service advertisement and discovery coverage. Some network environments may have non-trivial network infrastructure topologies that complicate the use of mDNS, but that are also not provisioned with infrastructure DNS-SD. There are also peer-to-peer wireless IP networking technologies used for transient communications and could support DNS-SD services, but that suffer from a poor user experience due to a lack of a standard way to provide the DNS-SD service information before a connection has been established (what is sometimes referred to as "pre-association service discovery"). Both of these could benefit from using ancillary short range peer-to-peer or proximity focused advertisement and discovery technologies to convey DNS-SD service information.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">Examples include the following:<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-2">There are circumstances where ancillary advertisement and discovery technologies can improve service advertisement and discovery coverage. Some network environments may have non-trivial network infrastructure topologies that complicate the use of mDNS <span>[<a href="#RFC6762" class="cite xref">RFC6762</a>]</span>, but that are also not provisioned with infrastructure DNS-SD. There are also peer-to-peer wireless IP networking technologies used for transient communications and could support DNS-SD services, but that suffer from a poor user experience due to a lack of a standard way to provide the DNS-SD service information before a connection has been established (what is sometimes referred to as "pre-association service discovery"). Both of these could benefit from using ancillary short range peer-to-peer or proximity focused advertisement and discovery technologies to convey DNS-SD service information.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">This problem is related to, but distinct from, the scaling problem addressed by <span>[<a href="#RFC7558" class="cite xref">RFC7558</a>]</span>: solutions to that problem extend DNS-SD's reach within IP networks that already have IP connectivity established. DDB instead addresses the complementary case of conveying DNS-SD service information before IP connectivity exists at all, or where none is expected to exist. In deployments where physical proximity between devices can be assumed, such as the segmented-network scenario below, DDB carried over an ancillary technology can also serve as an alternative to deploying <span>[<a href="#RFC7558" class="cite xref">RFC7558</a>]</span>-class scaling solutions, sidestepping the network-segmentation problem entirely rather than solving it via Scalable DNS-SD.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">Examples include the following:<a href="#section-1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1-4.1">
-          <p id="section-1-4.1.1">An IPP printer in an office with a segmented network topology and limited DNS-SD infrastructure advertises its IPP print service using Bluetooth Low Energy Transport Discovery Service (TDS) <span>[<a href="#BT-TDS" class="cite xref">BT-TDS</a>]</span> to provide service information to physically proximate clients.<a href="#section-1-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-1-5.1">
+          <p id="section-1-5.1.1">An IPP printer in an office with a segmented network topology and limited DNS-SD infrastructure advertises its IPP print service using Bluetooth Low Energy Transport Discovery Service (TDS) <span>[<a href="#BT-TDS" class="cite xref">BT-TDS</a>]</span> to provide service information to physically proximate clients.<a href="#section-1-5.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-4.2">
-          <p id="section-1-4.2.1">A television with an NFC interface in a hotel room advertises its media streaming services and supported carrier types using NFC Verb NDEF Records <span>[<a href="#NFC-VERB" class="cite xref">NFC-VERB</a>]</span>. A client tapped to the TV reviews the advertised connection carriers and services and offers its user a selected optimal pathway before engaging in the process of connecting to the TV.<a href="#section-1-4.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-5.2">
+          <p id="section-1-5.2.1">A television with an NFC interface in a hotel room advertises its media streaming services and supported carrier types using NFC Verb NDEF Records <span>[<a href="#NFC-VERB" class="cite xref">NFC-VERB</a>]</span>. A client tapped to the TV reviews the advertised connection carriers and services and offers its user a selected optimal pathway before engaging in the process of connecting to the TV.<a href="#section-1-5.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-5">For each of these scenarios and the ancillary discovery technologies used, there is a need to represent DNS-SD service information in a format that is not native to the technology's transport. The standards organizations responsible for these ancillary technologies are scoped to MAC/PHY-layer specification and do not consider DNS-SD service semantics to be within their area of expertise; defining such an encoding independently in each of those venues would risk incompatible, non-interoperable results. These organizations have accordingly deferred definition of this encoding to the DNS-SD community.<a href="#section-1-5" class="pilcrow">¶</a></p>
-<p id="section-1-6">This document defines the DDB format and its associated encoding and decoding rules for interoperable use. The DDB is designed to:<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-6">For each of these scenarios and the ancillary discovery technologies used, there is a need to represent DNS-SD service information in a format that is not native to the technology's transport. The standards organizations responsible for these ancillary technologies are scoped to MAC/PHY-layer specification and do not consider DNS-SD service semantics to be within their area of expertise; defining such an encoding independently in each of those venues would risk incompatible, non-interoperable results. These organizations have accordingly deferred definition of this encoding to the DNS-SD community.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-7">This document defines the DDB format and its associated encoding and decoding rules for interoperable use. The DDB is designed to:<a href="#section-1-7" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1-7.1">
-          <p id="section-1-7.1.1">Fit within the small payload sizes typical of short-range advertisement and proximity discovery technologies.<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-1-8.1">
+          <p id="section-1-8.1.1">Fit within the small payload sizes typical of short-range advertisement and proximity discovery technologies.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-7.2">
-          <p id="section-1-7.2.1">Be self-describing and forward-compatible (unknown fields are skipped by receivers that do not understand them).<a href="#section-1-7.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-8.2">
+          <p id="section-1-8.2.1">Be self-describing and forward-compatible (unknown fields are skipped by receivers that do not understand them).<a href="#section-1-8.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-7.3">
-          <p id="section-1-7.3.1">Round-trip losslessly to and from DNS-SD SRV + TXT records for the fields it encodes.<a href="#section-1-7.3.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-1-8.3">
+          <p id="section-1-8.3.1">Round-trip losslessly to and from DNS-SD SRV + TXT records for the fields it encodes.<a href="#section-1-8.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-8">Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum). In defining DDB, this document supplies the DNS-SD encoding that these standards bodies have identified as needed but outside their own scope to define, so that each can reference a single interoperable IETF-defined convention rather than specifying its own.<a href="#section-1-8" class="pilcrow">¶</a></p>
+<p id="section-1-9">Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum). In defining DDB, this document supplies the DNS-SD encoding that these standards bodies have identified as needed but outside their own scope to define, so that each can reference a single interoperable IETF-defined convention rather than specifying its own.<a href="#section-1-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-terminology">
@@ -1778,7 +1779,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <span class="break"></span><dl class="dlParallel" id="section-3.4.8-1">
             <dt id="section-3.4.8-1.1">Value:</dt>
             <dd style="margin-left: 1.5em" id="section-3.4.8-1.2">
-              <p id="section-3.4.8-1.2.1">An ASCII string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "printer.local" or "device-abc.example.com".<a href="#section-3.4.8-1.2.1" class="pilcrow">¶</a></p>
+              <p id="section-3.4.8-1.2.1">An ASCII string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "device-abc.example.com".<a href="#section-3.4.8-1.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.4.8-1.3"></dt>
@@ -2296,7 +2297,7 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 <dd class="break"></dd>
 <dt id="IPPEVE">[IPPEVE]</dt>
         <dd>
-<span class="refAuthor">ISTO Printer Working Group</span>, <span class="refTitle">"PWG 5100.14-2020: IPP Everywhere™ v1.1"</span>, <span class="seriesInfo">Version 1.1</span>, <time datetime="2020" class="refDate">2020</time>, <span>&lt;<a href="https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf">https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf</a>&gt;</span>. </dd>
+<span class="refAuthor">ISTO Printer Working Group</span>, <span class="refTitle">"PWG 5100.14-2020: IPP Everywhere v1.1"</span>, <span class="seriesInfo">Version 1.1</span>, <time datetime="2020" class="refDate">2020</time>, <span>&lt;<a href="https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf">https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="NFC-VERB">[NFC-VERB]</dt>
         <dd>
