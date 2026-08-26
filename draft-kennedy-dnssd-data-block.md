@@ -25,6 +25,8 @@ author:
     email: smitty.standards@gmail.com
 
 normative:
+  RFC1035:
+  RFC5891:
   RFC6335:
   RFC6763:
   RFC8126:
@@ -37,40 +39,6 @@ informative:
   RFC7558:
   RFC8259:
   RFC8949:
-  BT-ASSIGNED-NUMBERS:
-    title: "Assigned Numbers"
-    author:
-      -
-        organization: Bluetooth SIG
-    date: 2024
-    target: https://www.bluetooth.com/specifications/assigned-numbers/
-  BT-CORE:
-    title: "Bluetooth Core Specification"
-    author:
-      -
-        organization: Bluetooth SIG
-    date: 2023-01
-    seriesinfo:
-      Version: "5.4"
-    target: https://www.bluetooth.com/specifications/specs/core-54/
-  NFC-CH:
-    title: "NFC Forum Connection Handover Technical Specification"
-    author:
-      -
-        organization: NFC Forum
-    date: 2019
-    seriesinfo:
-      Version: "1.5"
-    target: https://nfc-forum.org/build/specifications/
-  NFC-DI:
-    title: "NFC Forum Well Known Type: Device Information RTD Technical Specification"
-    author:
-      -
-        organization: NFC Forum
-    date: 2024
-    seriesinfo:
-      Version: "1.0"
-    target: https://nfc-forum.org/build/specifications/
   BT-TDS:
     title: "Transport Discovery Service 1.1"
     author:
@@ -78,24 +46,6 @@ informative:
         organization: Bluetooth SIG
     date: 2020
     target: https://www.bluetooth.com/specifications/specs/transport-discovery-service-1-1/
-  IPPEVE:
-    title: "PWG 5100.14-2020: IPP Everywhere™ v1.1"
-    author:
-      -
-        organization: ISTO Printer Working Group
-    date: 2020
-    seriesinfo:
-      Version: "1.1"
-    target: https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf
-  NFC-NDEF:
-    title: "Data Exchange Format (NDEF) Technical Specification"
-    author:
-      -
-        organization: NFC Forum
-    date: 2006
-    seriesinfo:
-      Version: "1.0"
-    target: https://nfc-forum.org/build/specifications/
   NFC-VERB:
     title: "Verb RTD Technical Specification"
     author:
@@ -105,13 +55,21 @@ informative:
     seriesinfo:
       Version: "1.0"
     target: https://nfc-forum.org/build/specifications/
-  
+  IPPEVE:
+    title: "PWG 5100.14-2020: IPP Everywhere™ v1.1"
+    author:
+      -
+        organization: ISTO Printer Working Group
+    date: 2020
+    seriesinfo:
+      Version: "1.1"
+    target: https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf
 
 ...
 
 --- abstract
 
-The DNS-SD Data Block (DDB) is a compact, self-describing TLV encoded container providing a common, interoperable and extensible format for conveying DNS-SD service information over non-IP transports including, but not limited to, ancillary discovery technologies such as Bluetooth Low Energy Transport Discovery Service {{BT-TDS}} or NFC Verb NDEF Records {{NFC-VERB}}.
+The DNS-SD Data Block (DDB) is a compact, self-describing TLV encoded container providing a common, interoperable and extensible format for conveying DNS-SD service information over non-IP transports, such as short-range peer-to-peer or proximity-based advertisement and discovery technologies (for example, Bluetooth Low Energy Transport Discovery Service {{BT-TDS}} or NFC Verb NDEF Records {{NFC-VERB}}).
 
 --- middle
 
@@ -125,13 +83,13 @@ Examples include the following:
 
 * An IPP printer in an office with a segmented network topology and limited DNS-SD infrastructure advertises its IPP print service using Bluetooth Low Energy Transport Discovery Service (TDS) {{BT-TDS}} to provide service information to physically proximate clients.
 
-* A television with an NFC interface in a hotel room advertises its media streaming services and supported carrier types. A client tapped to the TV reviews the advertised connection carriers and services and offers its user a selected optimal pathway before engaging in the process of connecting to the TV.
+* A television with an NFC interface in a hotel room advertises its media streaming services and supported carrier types using NFC Verb NDEF Records {{NFC-VERB}}. A client tapped to the TV reviews the advertised connection carriers and services and offers its user a selected optimal pathway before engaging in the process of connecting to the TV.
 
 For each of these scenarios and the ancillary discovery technologies used, there is a need to represent DNS-SD service information in a format that is not native to the technology's transport. The standards organizations responsible for these ancillary technologies are scoped to MAC/PHY-layer specification and do not consider DNS-SD service semantics to be within their area of expertise; defining such an encoding independently in each of those venues would risk incompatible, non-interoperable results. These organizations have accordingly deferred definition of this encoding to the DNS-SD community.
 
-This document defines the DDB format and associated processing and transport mapping rules for interoperable use. The DDB is designed to:
+This document defines the DDB format and its associated encoding and decoding rules for interoperable use. The DDB is designed to:
 
-* Fit in constrained transport payloads (e.g., <= 29 bytes for a Bluetooth Low Energy legacy AD type payload unit, with guidelines for larger payloads).
+* Fit within the small payload sizes typical of short-range advertisement and proximity discovery technologies.
 
 * Be self-describing and forward-compatible (unknown fields are skipped by receivers that do not understand them).
 
@@ -166,24 +124,11 @@ UUID:
 TLV:
 : Type-Length-Value - a binary encoding scheme consisting of a type code field indicating the type, a length field indicating the length of the value field, and a value field containing the actual payload. The size of the type and length fields are typically fixed.
 
-Bluetooth Low Energy:
-: Bluetooth Low Energy, as specified by the Bluetooth SIG in the Bluetooth Core Specification.
-
-AD structure:
-: A Bluetooth Low Energy Advertising Data structure, consisting of a 1-octet length field, a 1-octet AD Type, and an AD-type-specific data field.
-
-NFC Forum Verb RTD:
-: The NFC Forum Well-Known Type "V" (0x56), defining a record type for advertising service descriptors within an NDEF message. Defined in {{NFC-VERB}}.
-
-NDEF:
-: NFC Data Exchange Format, defined by the NFC Forum {{NFC-NDEF}}.
-
-
 # DNS-SD Data Block (DDB) Format
 
 ## Applicability and Directionality
 
-A DDB describes a service being offered by the sender; it is not a request or query for a service. Any seek/query semantics (e.g., the Seek bit in an NFC Forum Verb RTD Service Descriptor) are properties of the surrounding transport container, not of the DDB payload itself. In particular, a DDB with an absent or empty Instance Name field (see {{instance-name}}) indicates only that no specific instance is being named, not that the sender is seeking rather than providing the service.
+A DDB describes a service being offered by the sender; it is not a request or query for a service. Any seek/query semantics (e.g., a seek/query flag defined by the surrounding transport container's own framing) are properties of that container, not of the DDB payload itself. In particular, a DDB with an absent or empty Instance Name field (see {{instance-name}}) indicates only that no specific instance is being named, not that the sender is seeking rather than providing the service.
 
 > OPEN ISSUE: This directionality constraint has not yet been discussed with the working group. If a future revision wants to support DDB content in a query/request role (e.g., a client advertising interest in a service type before association), this section will need to define how that role is distinguished from a service offer.
 
@@ -259,20 +204,23 @@ The following Type values are defined by this specification.
 | 0xFF | Reserved | N/A |
 {: title="DDB Field Types"}
 
+A DDB MUST include exactly one Service Name field (Type 0x01); all other field types defined in this registry are optional.
+
 ### Service Name (Type 0x01) {#service-name}
 
 Value:
 : A UTF-8 string containing the Service Name (the Application Protocol label and Transport Protocol label, joined by a period), as defined in {{RFC6763}}, Section 7. For example: "_ipp._tcp" or "_snmp._udp" or "_https._tcp". The trailing ".\<domain\>" portion (e.g., ".local") is NOT included; this is encoded separately using the Domain type (Type 0x05); see {{domain}}.
 
 Constraints:
-: MUST be present in any DDB that claims to describe a DNS-SD service. Length and character constraints follow {{RFC6763}}, Section 7 and {{RFC6335}}. The string MUST NOT be null-terminated.
+: Length and character constraints follow {{RFC6763}}, Section 7 and {{RFC6335}}. The string MUST NOT be null-terminated.
 
 Example:
 : The Service Name "_ipp._tcp" (9 octets) encodes as:
 
 ~~~
-01 09       ; Type=Service Name, Length=9
-5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+01 09                   ; Type=Service Name, Length=9
+5F 69 70 70 2E 5F 74 63 ;
+70                      ; "_ipp._tcp"
 ~~~
 
 ### Instance Name (Type 0x02) {#instance-name}
@@ -283,15 +231,15 @@ Value:
 Constraints:
 : Length constraints follow {{RFC6763}}, Section 4.1.1. A Length of 0 indicates that no specific Instance Name is being advertised (e.g., for general service-name discovery without an instance identifier). The string MUST NOT be null-terminated.
 
-: When the underlying transport already conveys an equivalent human-readable name (e.g., a Bluetooth Low Energy Local Name AD structure or an NFC device name record), senders MAY omit the Instance Name field and rely on that transport-native name instead, to avoid redundant encoding of the same information.
+: When the underlying transport already conveys an equivalent human-readable name of its own, senders MAY omit the Instance Name field and rely on that transport-native name instead, to avoid redundant encoding of the same information.
 
 Example:
 : The Instance Name "My Color Printer" (16 octets) encodes as:
 
 ~~~
-02 10       ; Type=Instance Name, Length=16
-4D 79 20 43 6F 6C 6F 72 20 50 72 69 6E 74 65 72
-                    ; "My Color Printer"
+02 10                   ; Type=Instance Name, Length=16
+4D 79 20 43 6F 6C 6F 72 ;
+20 50 72 69 6E 74 65 72 ; "My Color Printer"
 ~~~
 
 ### TXT Data (Type 0x03)
@@ -310,12 +258,20 @@ Example:
 : TXT strings "txtvers=1" (9 octets), "pdl=image/pwg-raster" (20 octets), and "rp=ipp/print" (12 octets), encoded as:
 
 ~~~
-0x09 t x t v e r s = 1
-0x14 p d l = i m a g e / p w g - r a s t e r
-0x0C r p = i p p / p r i n t
+03 2C                   ; Type=TXT Data, Length=44
+09                      ; string length 9
+74 78 74 76 65 72 73 3D ;
+31                      ; "txtvers=1"
+14                      ; string length 20
+70 64 6C 3D 69 6D 61 67 ;
+65 2F 70 77 67 2D 72 61 ;
+73 74 65 72             ; "pdl=image/pwg-raster"
+0C                      ; string length 12
+72 70 3D 69 70 70 2F 70 ;
+72 69 6E 74             ; "rp=ipp/print"
 ~~~
 
-: Total: 3 + 9 + 20 + 12 = 44 octets. TLV: Type=0x03, Length=0x2C, Value=\<44 octets as above\>.
+: Total: 3 + 9 + 20 + 12 = 44 octets.
 
 ### UUID (Type 0x04)
 
@@ -329,8 +285,9 @@ Example:
 : The UUID "12345678-1234-5678-1234-567812345678" encodes as:
 
 ~~~
-04 10       ; Type=UUID, Length=16
-12 34 56 78 12 34 56 78 12 34 56 78 12 34 56 78
+04 10                   ; Type=UUID, Length=16
+12 34 56 78 12 34 56 78 ;
+12 34 56 78 12 34 56 78 ; UUID bytes
 ~~~
 
 ### Domain (Type 0x05) {#domain}
@@ -365,7 +322,7 @@ Constraints:
 Value:
 : An ASCII string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "printer.local" or "device-abc.example.com".
 
-: The string is encoded in ASCII (not UTF-8) and MUST consist only of DNS label characters (letters, digits, hyphens) and period separators. Internationalized hostnames (IDN) MUST be encoded in their ACE (ASCII-Compatible Encoding) form per {{?RFC5891}}. The string MUST NOT include a trailing dot and MUST NOT be null-terminated.
+: The string is encoded in ASCII (not UTF-8) and MUST consist only of DNS label characters (letters, digits, hyphens) and period separators, per the preferred name syntax of {{RFC1035}}, Section 2.3.1. Internationalized hostnames (IDN) MUST be encoded in their ACE (ASCII-Compatible Encoding) form per {{RFC5891}}. The string MUST NOT include a trailing dot and MUST NOT be null-terminated.
 
 Constraints:
 : Optional. Length MUST be between 1 and 253 octets, consistent with the maximum length of a fully qualified domain name. If absent, the client MUST obtain the SRV target hostname via DNS-SD once an IP connection is established. Including this field is RECOMMENDED when the hostname is needed for TLS SNI certificate validation prior to IP-level name resolution.
@@ -383,9 +340,9 @@ Note:
 
 4. Omit any optional field that has no value to convey, to minimize encoded size.
 
-5. All string values are UTF-8 encoded and MUST NOT be null-terminated. String lengths in TLV Length fields count octets, not characters.
+5. All string values are UTF-8 encoded and MUST NOT be null-terminated, except the Hostname field ({{hostname}}), which is restricted to ASCII as specified in its own field definition. String lengths in TLV Length fields count octets, not characters.
 
-6. A single TLV field using extended-length encoding may carry a value of at most 65,535 octets, occupying 1 (Type) + 3 (0xFF escape + 2-octet extended length) + 65,535 (Value) = 65,539 octets. No absolute maximum is imposed on the total DDB length; practical transports impose far tighter limits (see {{transport-mappings}}), and implementations SHOULD reject DDBs that exceed the limit documented for the transport in use.
+6. A single TLV field using extended-length encoding may carry a value of at most 65,535 octets, occupying 1 (Type) + 3 (0xFF escape + 2-octet extended length) + 65,535 (Value) = 65,539 octets. No absolute maximum is imposed on the total DDB length; practical transports impose far tighter limits, and implementations SHOULD reject DDBs that exceed the limit imposed by the transport in use.
 
 ## Decoding Rules and Forward Compatibility
 
@@ -405,150 +362,16 @@ Note:
 
 3. Continue until all octets of the DDB have been consumed.
 
-4. A DDB with zero TLV fields after the Version octet is valid (though conveys no information); implementations SHOULD NOT generate such a block.
+4. A DDB parses successfully as long as its octets form well-formed TLV fields (including a DDB consisting of nothing but padding octets after the Version octet). However, a decoded DDB that contains no Service Name field (Type 0x01) is not a conformant DDB per {{field-type-registry}} and MUST be discarded by the receiver. Implementations MUST NOT generate a DDB lacking a Service Name field.
 
 5. A DDB that is truncated (insufficient octets to complete the current TLV) MUST be treated as malformed; already-decoded fields MAY be used at the discretion of the application.
 
 ## DDB Payload Identity and Media Types {#ddb-payload-identity}
 
-The canonical DDB payload is the exact octet sequence defined by {{ddb-format}}: one Version octet followed by zero or more TLV fields. Transport mappings in {{transport-mappings}} carry this same payload without altering its internal format.
+The canonical DDB payload is the exact octet sequence defined by {{ddb-format}}: one Version octet followed by zero or more TLV fields. A container that carries a DDB carries this payload without altering its internal format.
 
-When a content-type identifier is needed, a DDB payload can be identified as either:
-
-* MIME media type "application/vnd.dnssd.ddb"; or
-
-* NDEF External Type "ietf.org:dnssd-ddb".
-
-These identifiers name the same DDB payload format; they do not define different encodings.
+When a content-type identifier is needed, a DDB payload is identified by the MIME media type "application/vnd.dnssd.ddb".
 {: #ddb-format}
-
-# Transport Mappings {#transport-mappings}
-
-The primary concrete transport mappings described in this specification are Bluetooth Low Energy TDS and NDEF MIME/External Type records. NFC Forum Verb Service Descriptors are also specified for compact service hints in constrained Descriptor Data fields. Additional guidance is provided for other containers that can carry an opaque octet sequence.
-
-## Transport Discovery Service (TDS) AD Structure
-
-The Bluetooth Core Specification Supplement defines the Transport Discovery Service (TDS) AD structure (AD Type 0x26), which is specifically designed to advertise that a device supports a service accessible over a secondary transport (e.g., Bluetooth BR/EDR, Wi-Fi, or USB). TDS is the preferred Bluetooth Low Energy mechanism for service bootstrapping prior to IP association and is a natural fit for carrying DDB content.
-
-A TDS AD structure contains one or more Organization Blocks. Each Organization Block has the following format:
-
-~~~ ascii-art
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--------//--------+
-|  Org ID (1B)  | Data Len (1B) | Tran Caps (1B) | Transport Data |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--------//--------+
-~~~
-{: title="TDS Organization Block"}
-
-To carry a DDB in a TDS Organization Block:
-
-Organization ID:
-: The Organization ID is the one assigned to the transport for which the DDB describes the service (e.g., the Wi-Fi Alliance Organization ID for a Wi-Fi service, or the Bluetooth SIG Organization ID for a Bluetooth service). Pending formal assignment of a DNS-SD Organization ID, implementors typically use an Organization ID registered for the target transport and document the DDB encoding via the Transport Data field.
-
-Transport Data:
-: The DDB (Version octet + TLV fields) is placed directly in the Transport Data portion of the Organization Block. No additional framing is required.
-
-Transport Capabilities byte:
-: Set per the TDS specification for the target transport (e.g., Role bits, TDS Control Point supported bit).
-
-A TDS AD structure carrying a minimal DDB (Service Name only) for "_ipp._tcp":
-
-~~~
-AD Length:     varies (see below)
-AD Type:       0x26 (Transport Discovery Data)
-Org ID:        <transport-specific>
-Data Length:   0x0D  (12 DDB octets + 1 Tran Caps octet = 13)
-Tran Caps:     <transport-specific>
-Transport Data (DDB, 12 octets):
-   01          ; DDB Version = 1
-   01 09       ; Type=Service Name, Length=9
-   5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
-~~~
-
-Note: The TDS payload budget is more generous than legacy advertising: the full TDS AD structure occupies one of several AD structures in a 31-octet advertising packet, but TDS is also commonly used with extended advertising where the 255-octet limit allows richer DDB content including Instance Name and TXT Data.
-
-### Size Considerations
-
-When carrying a DDB in a TDS Organization Block within legacy Bluetooth Low Energy advertising (31-octet advertising data limit), the practical DDB payload budget is:
-
-Available in AD payload:
-: 29 octets (31 minus 1-octet length and 1-octet AD Type).
-
-TDS Organization Block overhead:
-: 3 octets (1-octet Org ID, 1-octet Data Length, 1-octet Transport Capabilities).
-
-Practical DDB budget (legacy):
-: 26 octets.
-
-A minimal DDB with only a 9-octet Service Name field ("_ipp._tcp") encodes as:
-
-~~~
-1 (Version) + 1 (Type) + 1 (Length) + 9 (Value) = 12 octets.
-~~~
-
-This fits very comfortably within the 26-octet TDS budget.
-
-Adding a UUID field (Type 0x04, Length 16): +18 octets = 30 octets total; this does not fit within the 26-octet TDS budget of legacy advertising.
-
-Including TXT Data or a long Instance Name in legacy TDS advertising is generally not feasible. Deployments requiring richer metadata typically use extended advertising, which supports much larger Organization Block payloads (up to ~252 octets for DDB content).
-
-## NFC Forum Verb Record Descriptor Data
-
-NFC Forum Verb records can be included in an NFC Forum Connection Handover message {{NFC-CH}} to convey information about supported services and their association with included carrier transport information.
-
-### Context Identifier Assignment
-
-The NFC Forum Verb RTD {{NFC-VERB}} carries one or more Service Descriptors. Each Service Descriptor carries a Context Identifier (1 octet) that identifies the service context.
-
-The NFC Forum Verb RTD specification assigns Context Identifier 0x02 for "IETF IAB / IANA" and this was intended to be used for DNS-SD. This specification uses Context Identifier 0x02 in the Service Descriptor to indicate DNS-SD service context.
-
-### Descriptor Data Encoding
-
-When DDB content is carried in the Descriptor Data field of an NFC Forum Verb Service Descriptor, the Descriptor Data field is limited to 1-32 octets by the NFC Forum Verb RTD specification. As a result, Descriptor Data carriage is generally limited to minimal DDB content (for example, Version + Service Name TLV), and senders SHOULD use Descriptor Data carriage only when the selected DDB fields fit within 32 octets.
-
-Senders MUST NOT truncate a TLV field to force it to fit. If the desired DDB content exceeds 32 octets, senders SHOULD carry the full DDB in a separate NDEF record as described in {{ndef-ddb-record}}.
-
-The Verb RTD Flags field carries the standard seek/provide bits as applicable. The External Record ID can reference an NDEF record elsewhere in the same NDEF message that carries complementary device information. For NFC Connection Handover, this reference will typically provide the ID of an Alternative Carrier record (type "ac") embedded within the Handover Request or Handover Select record.
-
-Within Descriptor Data carriage, senders typically prioritize Service Name and MAY include one short service-critical TXT key/value when it fits (for example, "rp=..."). UUID MAY be included only if the resulting DDB still fits; otherwise, UUID can be conveyed in a companion Device IP Identity or Device Information record. Service Instance Name and larger TXT payloads generally require {{ndef-ddb-record}}.
-
-Example Verb record Service Descriptor carrying a DNS-SD service for "_ipp._tcp":
-
-~~~
-Context Identifier:  <assigned value>
-Flags/Length byte:  Provide=1, Seek=0, External Record ID
-   present=0, Descriptor Data Length - 1 = 11 (0x8B total;
-   exact bit placement per [NFC-VERB])
-Descriptor Data Length:  12 octets (stored as length-1 = 11
-   in the Verb RTD Flags/Length field per the spec)
-Descriptor Data:
-   01         ; DDB Version = 1
-   01 09      ; Type=Service Name, Length=9
-   5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
-~~~
-
-### Referencing a Separate NDEF DDB Record
-
-When complete DNS-SD metadata does not fit in Descriptor Data, senders SHOULD place the full DDB in a separate NDEF record and use the Verb Service Descriptor to provide service context and linkage.
-
-* The Verb RTD Flags field carries the standard seek/provide bits as applicable.
-
-* The External Record ID can reference an NDEF record elsewhere in the same NDEF message that carries the DDB payload. For NFC Connection Handover, this reference may also identify an Alternative Carrier record (type "ac") embedded within the Handover Request or Handover Select record when transport association is required.
-
-* The referenced DDB payload record carries the payload defined in {{ddb-payload-identity}} and is encoded in NDEF per {{ndef-ddb-record}}.
-
-## NDEF DDB Record Payload Mapping (MIME or External Type) {#ndef-ddb-record}
-
-This section defines the NDEF record payload mapping used either as a standalone NFC carriage or as the record referenced by {{referencing-a-separate-ndef-ddb-record}}. A DDB can be carried as the payload of an NDEF MIME type record or an NDEF External Type record:
-
-MIME type record:
-: Uses MIME type "application/vnd.dnssd.ddb". The NDEF record's payload is the DDB payload defined in {{ddb-payload-identity}}. No additional framing is required.
-
-External Type record:
-: Uses type "ietf.org:dnssd-ddb" (or a vendor-specific type of the form "com.vendor:dnssd-ddb"). The NDEF record's payload is the DDB payload defined in {{ddb-payload-identity}}.
-
-In either case, the NDEF record is typically positioned after a URI record in the NDEF message to preserve reliable OS-level handling on common platforms (iOS, Android, Windows).
-
-Both encoding forms are suitable for long-term interoperability. The MIME type form ("application/vnd.dnssd.ddb") is preferred when the receiving application can rely on MIME type dispatch, as it uses the standard IANA-registered mechanism for content identification. The External Type form ("ietf.org:dnssd-ddb") is an acceptable alternative for environments where NDEF External Type dispatch is well-supported and a formal MIME type registration has not yet been completed.
 
 # Relationship to DNS-SD
 
@@ -582,9 +405,10 @@ The Domain field SHOULD be omitted when the domain is "local", and MUST be inclu
 This DDB conveys only the Service Name, sufficient for a "this device provides IPP printing" beacon:
 
 ~~~
-01          ; Version = 1
-01 09       ; Type=Service Name, Length=9
-5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+01                       ; Version = 1
+01 09                    ; Type=Service Name, Length=9
+5F 69 70 70 2E 5F 74 63 ;
+70                       ; "_ipp._tcp"
 ~~~
 
 Total: 12 octets.
@@ -594,77 +418,38 @@ Total: 12 octets.
 A more complete DDB for an IPP printer named "Conference Room Printer" (23 UTF-8 octets):
 
 ~~~
-01          ; Version = 1
+01                       ; Version = 1
 
-01 09       ; Type=Service Name, Length=9
-5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
+01 09                    ; Type=Service Name, Length=9
+5F 69 70 70 2E 5F 74 63 ;
+70                       ; "_ipp._tcp"
 
-02 17       ; Type=Instance Name, Length=23
-43 6F 6E 66 65 72 65 6E 63 65 20 52 6F 6F 6D 20
-50 72 69 6E 74 65 72              ; "Conference Room Printer"
+02 17                    ; Type=Instance Name, Length=23
+43 6F 6E 66 65 72 65 6E ;
+63 65 20 52 6F 6F 6D 20 ;
+50 72 69 6E 74 65 72     ; "Conference Room Printer"
 
-03 2C       ; Type=TXT Data, Length=44
-09          ; string length 9
-74 78 74 76 65 72 73 3D 31       ; "txtvers=1"
-14          ; string length 20
-70 64 6C 3D 69 6D 61 67 65 2F 70 77 67 2D 72 61 73 74 65 72
-                    ; "pdl=image/pwg-raster"
-0C          ; string length 12
-72 70 3D 69 70 70 2F 70 72 69 6E 74  ; "rp=ipp/print"
+03 2C                    ; Type=TXT Data, Length=44
+09                       ; string length 9
+74 78 74 76 65 72 73 3D ;
+31                       ; "txtvers=1"
+14                       ; string length 20
+70 64 6C 3D 69 6D 61 67 ;
+65 2F 70 77 67 2D 72 61 ;
+73 74 65 72              ; "pdl=image/pwg-raster"
+0C                       ; string length 12
+72 70 3D 69 70 70 2F 70 ;
+72 69 6E 74              ; "rp=ipp/print"
 
-04 10       ; Type=UUID, Length=16
-A1 B2 C3 D4 E5 F6 07 08
-89 9A AB BC CD DE EF F0          ; UUID bytes
+04 10                    ; Type=UUID, Length=16
+A1 B2 C3 D4 E5 F6 07 08 ;
+89 9A AB BC CD DE EF F0  ; UUID bytes
 
-06 02       ; Type=Port, Length=2
-02 7F                            ; port 631 (0x027F)
+06 02                    ; Type=Port, Length=2
+02 7F                    ; port 631 (0x027F)
 ~~~
 
 Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.
-
-## Bluetooth Low Energy TDS Advertisement Payload (Hex Annotated)
-
-Legacy advertising payload (31 octets total) carrying a minimal DDB in a Transport Discovery Service (TDS) AD structure (AD Type 0x26):
-
-~~~
-10          ; AD Length: 16 octets follow
-26          ; AD Type: Transport Discovery Data (TDS)
-FE          ; Organization ID (example transport-specific value)
-0D          ; Data Length: 13 octets (Tran Caps + DDB)
-00          ; Transport Capabilities (example value)
-01          ; DDB Version = 1
-01 09       ; TLV: Type=Service Name, Length=9
-5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
-~~~
-
-Total AD structure: 17 octets (1 length + 16 payload). Remaining advertising space: 31 - 17 = 14 octets for additional AD structures (e.g., Flags, Local Name, TX Power Level).
-
-## NFC Verb Record with Minimal DDB Descriptor Data
-
-This example shows an NFC Forum Verb record Service Descriptor carrying a minimal DDB for "_ipp._tcp". The Verb RTD framing and the DDB payload are shown separately for clarity.
-
-Verb RTD Service Descriptor framing (per {{NFC-VERB}}):
-
-~~~
-Context Identifier:  0x42
-   (Hypothetical private/experimental value pending formal NFC
-    Forum assignment for DNS-SD Data Block.)
-
-Flags/Length byte:  0x8B
-   Bits [7]:    Provide = 1 (device is providing this service)
-   Bits [6]:    Seek    = 0
-   Bits [5]:    External Record ID present = 0
-   Bits [4:0]:  Descriptor Data Length - 1 = 11 (12 octets - 1)
-   Combined: 1 0 0 0 1011 = 0x8B
-   (Exact bit layout per [NFC-VERB] Section 4.)
-
-Descriptor Data (12 octets):
-   01             ; DDB Version = 1
-   01 09          ; TLV Type=Service Name (0x01), Length=9
-   5F 69 70 70 2E 5F 74 63 70   ; "_ipp._tcp"
-~~~
-
-The DDB fits comfortably within the 32-octet maximum for the Descriptor Data field defined by {{NFC-VERB}}. For richer content (for example, Service Instance Name, TXT Data, and Port), senders SHOULD carry the full DDB in an NDEF MIME or External Type record ({{ndef-ddb-record}}) and use the Verb record for service context and linkage. When compact Descriptor Data is used, senders can prioritize a short service-critical TXT key/value (for example, "rp=...") while conveying UUID through companion Device IP Identity or Device Information records.
 
 # Design Notes and Alternatives Considered
 
@@ -701,10 +486,6 @@ An alternative design would assign TLV Type values from the DNS RR TYPE registry
 * The DNS RR TYPE namespace is a 16-bit space administered by IANA for an unrelated purpose (identifying resource record types generally), and is not guaranteed to stay within 1 octet: for example, CAA is assigned TYPE 257. Tying the DDB Type field to that registry would risk outgrowing the field's 1-octet width for reasons entirely outside this document's control.
 
 * A DDB-specific registry ({{iana}}) keeps the Type namespace small, dense, and scoped to exactly the fields this format defines, which is more appropriate for a constrained, self-contained encoding.
-
-## UUID Encoding
-
-The binary UUID is stored in network byte order per the RFC 9562 definition. Implementations should be aware that Bluetooth SIG UUIDs are typically stored in little-endian order within Bluetooth Low Energy packet structures; if a UUID from a DDB is being placed into or read from a Bluetooth Low Energy Service Data AD structure, byte-order conversion is required.
 
 ## TXT Record Encoding
 
@@ -750,39 +531,31 @@ Initial entries (defined by this specification):
 | 0xFF | Reserved | This document |
 {: title="DNS-SD Data Block TLV Types"}
 
-## NFC Forum Context Identifier
-
-If the approach described in {{nfc-forum-verb-record-descriptor-data}} is adopted, a Context Identifier assignment request should be submitted to the NFC Forum. This specification does not request an NFC Forum assignment, as that process is outside the IETF's purview.
-
 ## MIME Type Registration
 
-If the MIME type form described in {{ndef-ddb-record}} is used, a request to register "application/vnd.dnssd.ddb" should be submitted to IANA per {{RFC6838}}. This specification does not formally request that registration at this draft stage.
+A request to register the MIME media type "application/vnd.dnssd.ddb", identifying the DDB payload defined in {{ddb-payload-identity}}, should be submitted to IANA per {{RFC6838}}. This specification does not formally request that registration at this draft stage.
 
 # Security Considerations {#security}
 
-DDBs are carried in unauthenticated transports (Bluetooth Low Energy advertisements and NFC passive tags). The following security considerations apply:
+DDBs are typically carried in unauthenticated, short-range broadcast or proximity transports. The following security considerations apply:
 
 ## Spoofing and Impersonation
 
-Any device within Bluetooth Low Energy/NFC range can transmit a DDB claiming any Service Name, Instance Name, or UUID. Receivers MUST NOT rely on DDB content alone to establish trust. A DDB is a discovery aid; any security-relevant properties (authentication, authorization) MUST be established over the application protocol after connectivity is established (e.g., TLS over IPP, 802.1X, device attestation).
+Any device within range of the carrying transport can transmit a DDB claiming any Service Name, Instance Name, or UUID. Receivers MUST NOT rely on DDB content alone to establish trust. A DDB is a discovery aid; any security-relevant properties (authentication, authorization) MUST be established over the application protocol after connectivity is established (e.g., TLS over IPP, 802.1X, device attestation).
 
 ## Privacy: Persistent Identifiers
 
-The UUID field, if reused across proximity events, constitutes a stable identifier that can be used to track a device's location or owner. Devices SHOULD:
-
-* Use randomized UUIDs for DDBs carried in Bluetooth Low Energy advertising if the service UUID is not already stable (e.g., print services that expose a stable mDNS UUID publicly may choose to accept this).
-
-* For Bluetooth Low Energy specifically, this mirrors the considerations for Bluetooth Low Energy address randomization: persistent service identifiers in advertisements create the same tracking surface.
+The UUID field, if reused across proximity events, constitutes a stable identifier that can be used to track a device's location or owner. Devices SHOULD use randomized UUIDs for DDBs carried in broadcast advertising if the service UUID is not already stable (e.g., print services that expose a stable mDNS UUID publicly may choose to accept this). This mirrors similar address- and identifier-randomization considerations found in other short-range broadcast technologies: a persistent service identifier in an advertisement creates the same tracking surface as a persistent link-layer address.
 
 The Instance Name often contains human-readable device names (e.g., "Jane's MacBook Printer") which are personally identifying. Devices SHOULD allow users to customize or omit Instance Names in proximity advertisements.
 
 ## Denial of Service
 
-A malicious sender can flood Bluetooth Low Energy scanner queues or NFC readers with large numbers of DDB-carrying packets. Receivers SHOULD implement rate limiting and deduplication.
+A malicious sender can flood receivers with large numbers of DDB-carrying advertisements or messages. Receivers SHOULD implement rate limiting and deduplication.
 
 ## Data Integrity
 
-DDB transport containers (Bluetooth Low Energy, NFC) do not provide cryptographic integrity protection. An on-path attacker in close physical proximity could modify advertisement contents. Applications that require integrity SHOULD sign DDB content using an application-layer digital signature (e.g., a device certificate or vendor-defined signing mechanism) conveyed out-of-band or in a companion NDEF record, if the transport and deployment context support it.
+DDB transport containers typically do not provide cryptographic integrity protection. An on-path attacker in close physical proximity could modify advertisement contents. Applications that require integrity SHOULD sign DDB content using an application-layer digital signature (e.g., a device certificate or vendor-defined signing mechanism) conveyed out-of-band or in a companion record, if the transport and deployment context support it.
 
 ## Sensitive Data in TXT Records
 
