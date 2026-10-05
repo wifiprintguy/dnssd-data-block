@@ -96,7 +96,7 @@ This document defines the DDB format and its associated encoding and decoding ru
 
 * Be self-describing and forward-compatible (unknown fields are skipped by receivers that do not understand them).
 
-* Round-trip losslessly to and from DNS-SD SRV + TXT records for the fields it encodes.
+* Round-trip losslessly to and from DNS-SD PTR, SRV, and TXT records for the fields it encodes, in the common case of a service instance described by a single SRV record with zero priority and weight (see {{ddb-to-dnssd}}).
 
 Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum). In defining DDB, this document supplies the DNS-SD encoding that these standards bodies have identified as needed but outside their own scope to define, so that each can reference a single interoperable IETF-defined convention rather than specifying its own.
 
@@ -384,7 +384,7 @@ When a content-type identifier is needed, a DDB payload is identified by the MIM
 
 # Relationship to DNS-SD
 
-## Deriving DNS-SD Records from a DDB
+## Deriving DNS-SD Records from a DDB {#ddb-to-dnssd}
 
 Given a DDB and an IP address for the device, a client can synthesize the corresponding PTR, SRV, and TXT records using the owner-name conventions of {{RFC6763}}, Section 4.1, with the domain defaulting to "local" if the Domain field is absent:
 
@@ -392,7 +392,7 @@ PTR record:
 : RDATA is the Service Instance Name, built from the Instance Name, Service Name, and domain.
 
 SRV record:
-: RDATA is \<priority\> \<weight\> \<port\> \<hostname\>, using the Port field and, if present, the Hostname field (Type 0x08) as the target. If Hostname is absent, the SRV target is not known until DNS-SD is queried after IP association.
+: RDATA is \<priority\> \<weight\> \<port\> \<hostname\>, using the Port field and, if present, the Hostname field (Type 0x08) as the target. If Hostname is absent, the SRV target is not known until DNS-SD is queried after IP association. A DDB does not encode SRV priority or weight; a client MUST synthesize both as 0, as {{RFC6763}}, Section 5 specifies for the common case of a service instance described by a single SRV record.
 
 TXT record:
 : RDATA is the TXT Data field verbatim.
@@ -402,6 +402,8 @@ If the UUID field is present but the TXT Data field does not already contain a "
 ## Constructing a DDB from DNS-SD Records
 
 To serialize DNS-SD records into a DDB: set Version = 0x01; extract the Service Name and Instance Name from the PTR and Service Instance Name; copy the TXT record RDATA verbatim into TXT Data (extracting a "UUID" key into the UUID field, if present); copy Port from the SRV record; copy the SRV target hostname into Hostname (Type 0x08) if pre-connection hostname knowledge is needed; and omit Domain if it is "local".
+
+A DDB represents a single SRV record. Because SRV priority and weight affect client behavior only when multiple SRV records exist for the same Service Instance Name, they are not encoded.
 
 ## Domain Handling
 
