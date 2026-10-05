@@ -1,3 +1,9 @@
+# Note on Ruby/Bundler: `make update-deps` can pull a newer, possibly
+# pre-release, Bundler into lib/Gemfile.lock ("BUNDLED WITH"). If the build
+# then fails with a Bundler version mismatch, re-pin the lockfile to the
+# installed Bundler (check with `bundle -v`):
+#
+#   cd lib && BUNDLE_PATH=.gems bundle update --bundler=<version> --gemfile="$PWD/Gemfile"
 LIBDIR := lib
 -include $(LIBDIR)/main.mk
 
