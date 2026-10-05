@@ -1948,10 +1948,10 @@ f. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.7" cla
 <p id="section-5.1-1">This DDB conveys only the Service Name, sufficient for a "this device provides IPP printing" beacon:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.1-2">
 <pre>
-01                       ; Version = 1
-01 09                    ; Type=Service Name, Length=9
+01                      ; Version = 1
+01 09                   ; Type=Service Name, Length=9
 5F 69 70 70 2E 5F 74 63 ;
-70                       ; "_ipp._tcp"
+70                      ; "_ipp._tcp"
 </pre><a href="#section-5.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-5.1-3">Total: 12 octets.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
@@ -1965,35 +1965,35 @@ f. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.7" cla
 <p id="section-5.2-1">A more complete DDB for an IPP printer named "Conference Room Printer" (23 UTF-8 octets):<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.2-2">
 <pre>
-01                       ; Version = 1
+01                      ; Version = 1
 
-01 09                    ; Type=Service Name, Length=9
+01 09                   ; Type=Service Name, Length=9
 5F 69 70 70 2E 5F 74 63 ;
-70                       ; "_ipp._tcp"
+70                      ; "_ipp._tcp"
 
-02 17                    ; Type=Instance Name, Length=23
+02 17                   ; Type=Instance Name, Length=23
 43 6F 6E 66 65 72 65 6E ;
 63 65 20 52 6F 6F 6D 20 ;
-50 72 69 6E 74 65 72     ; "Conference Room Printer"
+50 72 69 6E 74 65 72    ; "Conference Room Printer"
 
-03 2C                    ; Type=TXT Data, Length=44
-09                       ; string length 9
+03 2C                   ; Type=TXT Data, Length=44
+09                      ; string length 9
 74 78 74 76 65 72 73 3D ;
-31                       ; "txtvers=1"
-14                       ; string length 20
+31                      ; "txtvers=1"
+14                      ; string length 20
 70 64 6C 3D 69 6D 61 67 ;
 65 2F 70 77 67 2D 72 61 ;
-73 74 65 72              ; "pdl=image/pwg-raster"
-0C                       ; string length 12
+73 74 65 72             ; "pdl=image/pwg-raster"
+0C                      ; string length 12
 72 70 3D 69 70 70 2F 70 ;
-72 69 6E 74              ; "rp=ipp/print"
+72 69 6E 74             ; "rp=ipp/print"
 
-04 10                    ; Type=UUID, Length=16
+04 10                   ; Type=UUID, Length=16
 A1 B2 C3 D4 E5 F6 07 08 ;
-89 9A AB BC CD DE EF F0  ; UUID bytes
+89 9A AB BC CD DE EF F0 ; UUID bytes
 
-06 02                    ; Type=Port, Length=2
-02 77                    ; port 631 (0x0277)
+06 02                   ; Type=Port, Length=2
+02 77                   ; port 631 (0x0277)
 </pre><a href="#section-5.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-5.2-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
