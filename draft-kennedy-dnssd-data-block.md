@@ -126,7 +126,7 @@ UUID:
 TLV:
 : Type-Length-Value - a binary encoding scheme consisting of a type code field indicating the type, a length field indicating the length of the value field, and a value field containing the actual payload. The size of the type and length fields are typically fixed.
 
-# DNS-SD Data Block (DDB) Format
+# DNS-SD Data Block (DDB) Format {#ddb-format}
 
 ## Applicability and Directionality
 
@@ -373,7 +373,6 @@ Note:
 The canonical DDB payload is the exact octet sequence defined by {{ddb-format}}: one Version octet followed by zero or more TLV fields. A container that carries a DDB carries this payload without altering its internal format.
 
 When a content-type identifier is needed, a DDB payload is identified by the MIME media type "application/vnd.dnssd.ddb".
-{: #ddb-format}
 
 # Relationship to DNS-SD
 
