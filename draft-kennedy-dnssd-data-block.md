@@ -448,7 +448,7 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 89 9A AB BC CD DE EF F0  ; UUID bytes
 
 06 02                    ; Type=Port, Length=2
-02 7F                    ; port 631 (0x027F)
+02 77                    ; port 631 (0x0277)
 ~~~
 
 Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.
