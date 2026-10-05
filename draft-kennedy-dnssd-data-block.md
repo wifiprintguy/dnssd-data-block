@@ -34,6 +34,7 @@ normative:
 
 informative:
   RFC4122:
+  RFC6066:
   RFC6762:
   RFC6838:
   RFC7558:
@@ -304,6 +305,9 @@ Constraints:
 
 Note:
 : In the vast majority of short-range proximity scenarios, the domain is "local" and this field can be omitted to save space.
+
+Note:
+: The Domain field is UTF-8, whereas the Hostname field ({{hostname}}) is ASCII with internationalized labels in A-label form. This difference is deliberate and mirrors DNS-SD practice. {{RFC6763}}, Section 4.1.3 recommends that the \<Domain\> portion of a Service Instance Name be represented as precomposed UTF-8 (Unicode Normalization Form C). An SRV target, by contrast, is a host name used for address resolution and as the TLS Server Name Indication value, which requires A-labels ({{RFC6066}}, Section 3). Encoders MUST encode the Domain exactly as it appears in the Service Instance Name. A receiver that needs the A-label form (e.g., to issue a unicast DNS query) can derive it per {{RFC5891}}.
 
 ### Port (Type 0x06)
 
