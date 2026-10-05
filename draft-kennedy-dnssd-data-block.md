@@ -320,7 +320,7 @@ Constraints:
 ### Subtype List (Type 0x07)
 
 Value:
-: A sequence of length-prefixed UTF-8 strings, one per DNS-SD subtype that the service instance supports. Each subtype string is the subtype label only (without the "_sub.\<service\>.\<domain\>" suffix), preceded by its 1-octet length. Example: the subtype "_print" (defined by IPP Everywhere {{IPPEVE}}) would be encoded as 0x0A followed by "_print" (6 octets).
+: A sequence of length-prefixed UTF-8 strings, one per DNS-SD subtype that the service instance supports. Each subtype string is the subtype label only (without the "_sub.\<service\>.\<domain\>" suffix), preceded by its 1-octet length. Example: the subtype "_print" (defined by IPP Everywhere {{IPPEVE}}) would be encoded as 0x06 followed by "_print" (6 octets).
 
 Constraints:
 : Optional. Included only when the service advertises one or more DNS-SD subtypes. Each individual subtype label MUST NOT exceed 63 octets.
