@@ -372,7 +372,7 @@ Note:
 
 The canonical DDB payload is the exact octet sequence defined by {{ddb-format}}: one Version octet followed by zero or more TLV fields. A container that carries a DDB carries this payload without altering its internal format.
 
-When a content-type identifier is needed, a DDB payload is identified by the MIME media type "application/vnd.dnssd.ddb".
+When a content-type identifier is needed, a DDB payload is identified by the MIME media type "application/dnssd-ddb".
 
 # Relationship to DNS-SD
 
@@ -534,7 +534,7 @@ Initial entries (defined by this specification):
 
 ## MIME Type Registration
 
-A request to register the MIME media type "application/vnd.dnssd.ddb", identifying the DDB payload defined in {{ddb-payload-identity}}, should be submitted to IANA per {{RFC6838}}. This specification does not formally request that registration at this draft stage.
+The MIME media type "application/dnssd-ddb", identifying the DDB payload defined in {{ddb-payload-identity}}, is intended for registration in the standards tree per {{RFC6838}}. This specification does not formally request that registration at this draft stage.
 
 # Security Considerations {#security}
 
