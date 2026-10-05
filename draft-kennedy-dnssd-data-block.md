@@ -184,7 +184,7 @@ Length (1 octet):
 Value (Length octets):
 : The field value. Encoding is field-type-specific; see {{field-type-registry}}.
 
-TLV fields MUST be processed in the order they appear. Encoders MUST NOT include more than one TLV field with the same Type value. Decoders that encounter duplicate Type values MUST use the last instance and discard earlier ones, in order to remain robust against malformed input.
+TLV fields MUST be processed in the order they appear. Encoders MUST NOT include more than one TLV field with the same Type value. A decoder that encounters a TLV field whose Type value has already appeared in the same DDB MUST treat the entire DDB as malformed and discard it; see {{parser-differentials}}. This applies to all Type values, including unrecognized and Private Use values. Padding octets (Type 0x00) are not TLV fields and are not subject to this rule.
 
 An implementation MUST ignore (skip past) any TLV field whose Type it does not recognize.
 
@@ -340,7 +340,7 @@ Note:
 
 2. Encode the Service Name field (Type 0x01) first. This is the primary identifier of what kind of service is being described.
 
-3. Encode remaining fields in no required order, though the ordering Service Name -> Instance Name -> TXT -> UUID -> others is RECOMMENDED as it places the most informative fields first, which is useful when receivers truncate parsing on constrained implementations.
+3. Encode remaining fields in no required order, though the ordering Service Name -> Instance Name -> TXT -> UUID -> others is RECOMMENDED as it places the most informative fields first, which is useful when a transport delivers a truncated DDB (see Decoding Rule 5).
 
 4. Omit any optional field that has no value to convey, to minimize encoded size.
 
@@ -356,13 +356,15 @@ Note:
 
     a. Read the Type octet. If Type is 0x00, this is a padding byte; consume it and continue to the next field.
 
-    b. Read the Length octet. If Length is 0xFF, read the next two octets as a 16-bit big-endian extended length.
+    b. If the Type has already been seen in this DDB, stop and discard the DDB as malformed.
 
-    c. Read Value octets (count given by the resolved length).
+    c. Read the Length octet. If Length is 0xFF, read the next two octets as a 16-bit big-endian extended length.
 
-    d. If the Type is known, process according to {{field-type-registry}}.
+    d. Read Value octets (count given by the resolved length).
 
-    e. If the Type is unknown, skip the Value bytes.
+    e. If the Type is known, process according to {{field-type-registry}}.
+
+    f. If the Type is unknown, skip the Value bytes.
 
 3. Continue until all octets of the DDB have been consumed.
 
@@ -559,6 +561,10 @@ A malicious sender can flood receivers with large numbers of DDB-carrying advert
 ## Data Integrity
 
 DDB transport containers typically do not provide cryptographic integrity protection. An on-path attacker in close physical proximity could modify advertisement contents. Applications that require integrity SHOULD sign DDB content using an application-layer digital signature (e.g., a device certificate or vendor-defined signing mechanism) conveyed out-of-band or in a companion record, if the transport and deployment context support it.
+
+## Parser Differentials {#parser-differentials}
+
+If decoders resolved duplicate TLV fields differently (for example, one keeping the first instance and another the last), an attacker could craft a DDB that a filtering or validating component interprets one way and an end consumer interprets another, such as a Service Name or Hostname that passes inspection but is acted upon differently. Requiring decoders to discard any DDB containing duplicate Type values eliminates this ambiguity. Since conformant encoders never emit duplicates, rejection does not affect interoperability between conformant implementations.
 
 ## Sensitive Data in TXT Records
 
