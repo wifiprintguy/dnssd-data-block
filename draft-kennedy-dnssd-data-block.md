@@ -520,7 +520,7 @@ Initial entries (defined by this specification):
 |---|---|---|
 | 0x00 | Padding (NOP) | This document |
 | 0x01 | Service Name | This document |
-| 0x02 | Service Instance Name | This document |
+| 0x02 | Instance Name | This document |
 | 0x03 | TXT Data | This document |
 | 0x04 | UUID | This document |
 | 0x05 | Domain | This document |
