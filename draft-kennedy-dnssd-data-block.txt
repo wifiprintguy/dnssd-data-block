@@ -3,12 +3,12 @@
 
 
 Network Working Group                                         S. Kennedy
-Internet-Draft                                            26 August 2026
+Internet-Draft                                            5 October 2026
 Intended status: Standards Track                                        
-Expires: 27 February 2027
+Expires: 8 April 2027
 
 
-           DNS-SD Data Block Encoding for Non-DNS Transports
+          DNS-SD Data Block: An Encoding for Non-IP Transports
                  draft-kennedy-dnssd-data-block-latest
 
 Abstract
@@ -46,7 +46,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 27 February 2027.
+   This Internet-Draft will expire on 8 April 2027.
 
 Copyright Notice
 
@@ -102,7 +102,8 @@ Table of Contents
      8.2.  Privacy: Persistent Identifiers
      8.3.  Denial of Service
      8.4.  Data Integrity
-     8.5.  Sensitive Data in TXT Records
+     8.5.  Parser Differentials
+     8.6.  Sensitive Data in TXT Records
    9.  References
      9.1.  Normative References
      9.2.  Informative References
@@ -177,8 +178,10 @@ Table of Contents
    *  Be self-describing and forward-compatible (unknown fields are
       skipped by receivers that do not understand them).
 
-   *  Round-trip losslessly to and from DNS-SD SRV + TXT records for the
-      fields it encodes.
+   *  Round-trip losslessly to and from DNS-SD PTR, SRV, and TXT records
+      for the fields it encodes, in the common case of a service
+      instance described by a single SRV record with zero priority and
+      weight (see Section 4.1).
 
    Use of DDB in specific external registries or protocol elements may
    still require assignment or approval by the relevant standards body
@@ -229,6 +232,15 @@ Table of Contents
 3.  DNS-SD Data Block (DDB) Format
 
 3.1.  Applicability and Directionality
+
+   DDB is intended for transports over which DNS-SD itself cannot
+   operate, such as short-range proximity and pre-association
+   technologies.  Where IP connectivity is available and DNS-SD is
+   usable, implementations SHOULD use DNS-SD directly rather than
+   conveying DDBs over IP.  Relaying a DDB over an IP-based protocol
+   (e.g., from a gateway or for diagnostics) is outside the scope of
+   this specification and does not change its status as an
+   unauthenticated discovery aid (see Section 8).
 
    A DDB describes a service being offered by the sender; it is not a
    request or query for a service.  Any seek/query semantics (e.g., a
@@ -315,10 +327,12 @@ Table of Contents
       specific; see Section 3.4.
 
    TLV fields MUST be processed in the order they appear.  Encoders MUST
-   NOT include more than one TLV field with the same Type value.
-   Decoders that encounter duplicate Type values MUST use the last
-   instance and discard earlier ones, in order to remain robust against
-   malformed input.
+   NOT include more than one TLV field with the same Type value.  A
+   decoder that encounters a TLV field whose Type value has already
+   appeared in the same DDB MUST treat the entire DDB as malformed and
+   discard it; see Section 8.5.  This applies to all Type values,
+   including unrecognized and Private Use values.  Padding octets (Type
+   0x00) are not TLV fields and are not subject to this rule.
 
    An implementation MUST ignore (skip past) any TLV field whose Type it
    does not recognize.
@@ -473,6 +487,18 @@ Table of Contents
    Note:  In the vast majority of short-range proximity scenarios, the
       domain is "local" and this field can be omitted to save space.
 
+   Note:  The Domain field is UTF-8, whereas the Hostname field
+      (Section 3.4.8) is ASCII with internationalized labels in A-label
+      form.  This difference is deliberate and mirrors DNS-SD practice.
+      [RFC6763], Section 4.1.3 recommends that the <Domain> portion of a
+      Service Instance Name be represented as precomposed UTF-8 (Unicode
+      Normalization Form C).  An SRV target, by contrast, is a host name
+      used for address resolution and as the TLS Server Name Indication
+      value, which requires A-labels ([RFC6066], Section 3).  Encoders
+      MUST encode the Domain exactly as it appears in the Service
+      Instance Name.  A receiver that needs the A-label form (e.g., to
+      issue a unicast DNS query) can derive it per [RFC5891].
+
 3.4.6.  Port (Type 0x06)
 
    Value:  A 2-octet unsigned integer in network byte order containing
@@ -493,7 +519,7 @@ Table of Contents
       is the subtype label only (without the "_sub.<service>.<domain>"
       suffix), preceded by its 1-octet length.  Example: the subtype
       "_print" (defined by IPP Everywhere [IPPEVE]) would be encoded as
-      0x0A followed by "_print" (6 octets).
+      0x06 followed by "_print" (6 octets).
 
    Constraints:  Optional.  Included only when the service advertises
       one or more DNS-SD subtypes.  Each individual subtype label MUST
@@ -539,8 +565,8 @@ Table of Contents
    3.  Encode remaining fields in no required order, though the ordering
        Service Name -> Instance Name -> TXT -> UUID -> others is
        RECOMMENDED as it places the most informative fields first, which
-       is useful when receivers truncate parsing on constrained
-       implementations.
+       is useful when a transport delivers a truncated DDB (see Decoding
+       Rule 5).
 
    4.  Omit any optional field that has no value to convey, to minimize
        encoded size.
@@ -568,14 +594,17 @@ Table of Contents
        a.  Read the Type octet.  If Type is 0x00, this is a padding
        byte; consume it and continue to the next field.
 
-       b.  Read the Length octet.  If Length is 0xFF, read the next two
+       b.  If the Type has already been seen in this DDB, stop and
+       discard the DDB as malformed.
+
+       c.  Read the Length octet.  If Length is 0xFF, read the next two
        octets as a 16-bit big-endian extended length.
 
-       c.  Read Value octets (count given by the resolved length).
+       d.  Read Value octets (count given by the resolved length).
 
-       d.  If the Type is known, process according to Section 3.4.
+       e.  If the Type is known, process according to Section 3.4.
 
-       e.  If the Type is unknown, skip the Value bytes.
+       f.  If the Type is unknown, skip the Value bytes.
 
    3.  Continue until all octets of the DDB have been consumed.
 
@@ -594,12 +623,12 @@ Table of Contents
 3.7.  DDB Payload Identity and Media Types
 
    The canonical DDB payload is the exact octet sequence defined by
-   Section 3.7, Paragraph 2: one Version octet followed by zero or more
-   TLV fields.  A container that carries a DDB carries this payload
-   without altering its internal format.
+   Section 3: one Version octet followed by zero or more TLV fields.  A
+   container that carries a DDB carries this payload without altering
+   its internal format.
 
    When a content-type identifier is needed, a DDB payload is identified
-   by the MIME media type "application/vnd.dnssd.ddb".
+   by the MIME media type "application/dnssd-ddb".
 
 4.  Relationship to DNS-SD
 
@@ -616,7 +645,10 @@ Table of Contents
    SRV record:  RDATA is <priority> <weight> <port> <hostname>, using
       the Port field and, if present, the Hostname field (Type 0x08) as
       the target.  If Hostname is absent, the SRV target is not known
-      until DNS-SD is queried after IP association.
+      until DNS-SD is queried after IP association.  A DDB does not
+      encode SRV priority or weight; a client MUST synthesize both as 0,
+      as [RFC6763], Section 5 specifies for the common case of a service
+      instance described by a single SRV record.
 
    TXT record:  RDATA is the TXT Data field verbatim.
 
@@ -635,6 +667,10 @@ Table of Contents
    record; copy the SRV target hostname into Hostname (Type 0x08) if
    pre-connection hostname knowledge is needed; and omit Domain if it is
    "local".
+
+   A DDB represents a single SRV record.  Because SRV priority and
+   weight affect client behavior only when multiple SRV records exist
+   for the same Service Instance Name, they are not encoded.
 
 4.3.  Domain Handling
 
@@ -690,7 +726,7 @@ Table of Contents
    89 9A AB BC CD DE EF F0  ; UUID bytes
 
    06 02                    ; Type=Port, Length=2
-   02 7F                    ; port 631 (0x027F)
+   02 77                    ; port 631 (0x0277)
 
    Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.
 
@@ -800,42 +836,42 @@ Table of Contents
 
    Initial entries (defined by this specification):
 
-           +===========+=======================+===============+
-           | Value     | Name                  | Reference     |
-           +===========+=======================+===============+
-           | 0x00      | Padding (NOP)         | This document |
-           +-----------+-----------------------+---------------+
-           | 0x01      | Service Name          | This document |
-           +-----------+-----------------------+---------------+
-           | 0x02      | Service Instance Name | This document |
-           +-----------+-----------------------+---------------+
-           | 0x03      | TXT Data              | This document |
-           +-----------+-----------------------+---------------+
-           | 0x04      | UUID                  | This document |
-           +-----------+-----------------------+---------------+
-           | 0x05      | Domain                | This document |
-           +-----------+-----------------------+---------------+
-           | 0x06      | Port                  | This document |
-           +-----------+-----------------------+---------------+
-           | 0x07      | Subtype List          | This document |
-           +-----------+-----------------------+---------------+
-           | 0x08      | Hostname              | This document |
-           +-----------+-----------------------+---------------+
-           | 0x09-0xEF | Unassigned            | This document |
-           +-----------+-----------------------+---------------+
-           | 0xF0-0xFE | Private Use           | This document |
-           +-----------+-----------------------+---------------+
-           | 0xFF      | Reserved              | This document |
-           +-----------+-----------------------+---------------+
+               +===========+===============+===============+
+               | Value     | Name          | Reference     |
+               +===========+===============+===============+
+               | 0x00      | Padding (NOP) | This document |
+               +-----------+---------------+---------------+
+               | 0x01      | Service Name  | This document |
+               +-----------+---------------+---------------+
+               | 0x02      | Instance Name | This document |
+               +-----------+---------------+---------------+
+               | 0x03      | TXT Data      | This document |
+               +-----------+---------------+---------------+
+               | 0x04      | UUID          | This document |
+               +-----------+---------------+---------------+
+               | 0x05      | Domain        | This document |
+               +-----------+---------------+---------------+
+               | 0x06      | Port          | This document |
+               +-----------+---------------+---------------+
+               | 0x07      | Subtype List  | This document |
+               +-----------+---------------+---------------+
+               | 0x08      | Hostname      | This document |
+               +-----------+---------------+---------------+
+               | 0x09-0xEF | Unassigned    | This document |
+               +-----------+---------------+---------------+
+               | 0xF0-0xFE | Private Use   | This document |
+               +-----------+---------------+---------------+
+               | 0xFF      | Reserved      | This document |
+               +-----------+---------------+---------------+
 
                     Table 2: DNS-SD Data Block TLV Types
 
 7.2.  MIME Type Registration
 
-   A request to register the MIME media type "application/
-   vnd.dnssd.ddb", identifying the DDB payload defined in Section 3.7,
-   should be submitted to IANA per [RFC6838].  This specification does
-   not formally request that registration at this draft stage.
+   The MIME media type "application/dnssd-ddb", identifying the DDB
+   payload defined in Section 3.7, is intended for registration in the
+   standards tree per [RFC6838].  This specification does not formally
+   request that registration at this draft stage.
 
 8.  Security Considerations
 
@@ -887,7 +923,19 @@ Table of Contents
    signing mechanism) conveyed out-of-band or in a companion record, if
    the transport and deployment context support it.
 
-8.5.  Sensitive Data in TXT Records
+8.5.  Parser Differentials
+
+   If decoders resolved duplicate TLV fields differently (for example,
+   one keeping the first instance and another the last), an attacker
+   could craft a DDB that a filtering or validating component interprets
+   one way and an end consumer interprets another, such as a Service
+   Name or Hostname that passes inspection but is acted upon
+   differently.  Requiring decoders to discard any DDB containing
+   duplicate Type values eliminates this ambiguity.  Since conformant
+   encoders never emit duplicates, rejection does not affect
+   interoperability between conformant implementations.
+
+8.6.  Sensitive Data in TXT Records
 
    The TXT Data field can carry arbitrary key=value pairs.  Senders MUST
    NOT include long-lived secrets (Wi-Fi PSKs, passwords, private keys)
@@ -955,6 +1003,11 @@ Table of Contents
               Unique IDentifier (UUID) URN Namespace", RFC 4122,
               DOI 10.17487/RFC4122, July 2005,
               <https://www.rfc-editor.org/rfc/rfc4122>.
+
+   [RFC6066]  Eastlake 3rd, D., "Transport Layer Security (TLS)
+              Extensions: Extension Definitions", RFC 6066,
+              DOI 10.17487/RFC6066, January 2011,
+              <https://www.rfc-editor.org/rfc/rfc6066>.
 
    [RFC6762]  Cheshire, S. and M. Krochmal, "Multicast DNS", RFC 6762,
               DOI 10.17487/RFC6762, February 2013,

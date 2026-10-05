@@ -4,31 +4,31 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>DNS-SD Data Block Encoding for Non-DNS Transports</title>
+<title>DNS-SD Data Block: An Encoding for Non-IP Transports</title>
 <meta content="Smith Kennedy" name="author">
 <meta content="
        The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports used by short-range peer-to-peer or proximity-based advertisement and discovery technologies such as the Bluetooth Low Energy Transport Discovery Service or NFC Verb NDEF Records. 
     " name="description">
-<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="xml2rfc 3.34.1" name="generator">
 <meta content="dns-sd" name="keyword">
 <meta content="service discovery" name="keyword">
 <meta content="bluetooth low energy" name="keyword">
 <meta content="nfc" name="keyword">
 <meta content="draft-kennedy-dnssd-data-block-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.0
-    Python 3.14.7
-    ConfigArgParse 1.7.5
+  xml2rfc 3.34.1
+    Python 3.14.8
+    ConfigArgParse 1.8.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.3
+    platformdirs 4.12.2
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.2
+    wcwidth 0.9.1
 -->
 <link href="draft-kennedy-dnssd-data-block.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1044,11 +1044,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">DNS-SD Data Block</td>
-<td class="right">August 2026</td>
+<td class="right">October 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Kennedy</td>
-<td class="center">Expires 27 February 2027</td>
+<td class="center">Expires 8 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1061,12 +1061,12 @@ svg {
 <dd class="internet-draft">draft-kennedy-dnssd-data-block-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-26" class="published">26 August 2026</time>
+<time datetime="2026-10-05" class="published">5 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-27">27 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-08">8 April 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1075,7 +1075,7 @@ svg {
 </dd>
 </dl>
 </div>
-<h1 id="title">DNS-SD Data Block Encoding for Non-DNS Transports</h1>
+<h1 id="title">DNS-SD Data Block: An Encoding for Non-IP Transports</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports used by short-range peer-to-peer or proximity-based advertisement and discovery technologies such as the Bluetooth Low Energy Transport Discovery Service or NFC Verb NDEF Records.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
@@ -1112,7 +1112,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 27 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 8 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1268,7 +1268,10 @@ svg {
                 <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-data-integrity" class="internal xref">Data Integrity</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.5">
-                <p id="section-toc.1-1.8.2.5.1"><a href="#section-8.5" class="auto internal xref">8.5</a>.  <a href="#name-sensitive-data-in-txt-recor" class="internal xref">Sensitive Data in TXT Records</a></p>
+                <p id="section-toc.1-1.8.2.5.1"><a href="#section-8.5" class="auto internal xref">8.5</a>.  <a href="#name-parser-differentials" class="internal xref">Parser Differentials</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.6">
+                <p id="section-toc.1-1.8.2.6.1"><a href="#section-8.6" class="auto internal xref">8.6</a>.  <a href="#name-sensitive-data-in-txt-recor" class="internal xref">Sensitive Data in TXT Records</a></p>
 </li>
             </ul>
 </li>
@@ -1320,7 +1323,7 @@ svg {
           <p id="section-1-8.2.1">Be self-describing and forward-compatible (unknown fields are skipped by receivers that do not understand them).<a href="#section-1-8.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-8.3">
-          <p id="section-1-8.3.1">Round-trip losslessly to and from DNS-SD SRV + TXT records for the fields it encodes.<a href="#section-1-8.3.1" class="pilcrow">¶</a></p>
+          <p id="section-1-8.3.1">Round-trip losslessly to and from DNS-SD PTR, SRV, and TXT records for the fields it encodes, in the common case of a service instance described by a single SRV record with zero priority and weight (see <a href="#ddb-to-dnssd" class="auto internal xref">Section 4.1</a>).<a href="#section-1-8.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-1-9">Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum). In defining DDB, this document supplies the DNS-SD encoding that these standards bodies have identified as needed but outside their own scope to define, so that each can reference a single interoperable IETF-defined convention rather than specifying its own.<a href="#section-1-9" class="pilcrow">¶</a></p>
@@ -1375,7 +1378,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 </dl>
 </section>
 </div>
-<div id="dns-sd-data-block-ddb-format">
+<div id="ddb-format">
 <section id="section-3">
       <h2 id="name-dns-sd-data-block-ddb-forma">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-dns-sd-data-block-ddb-forma" class="section-name selfRef">DNS-SD Data Block (DDB) Format</a>
@@ -1385,10 +1388,11 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <h3 id="name-applicability-and-direction">
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-applicability-and-direction" class="section-name selfRef">Applicability and Directionality</a>
         </h3>
-<p id="section-3.1-1">A DDB describes a service being offered by the sender; it is not a request or query for a service. Any seek/query semantics (e.g., a seek/query flag defined by the surrounding transport container's own framing) are properties of that container, not of the DDB payload itself. In particular, a DDB with an absent or empty Instance Name field (see <a href="#instance-name" class="auto internal xref">Section 3.4.2</a>) indicates only that no specific instance is being named, not that the sender is seeking rather than providing the service.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-1">DDB is intended for transports over which DNS-SD itself cannot operate, such as short-range proximity and pre-association technologies. Where IP connectivity is available and DNS-SD is usable, implementations <span class="bcp14">SHOULD</span> use DNS-SD directly rather than conveying DDBs over IP. Relaying a DDB over an IP-based protocol (e.g., from a gateway or for diagnostics) is outside the scope of this specification and does not change its status as an unauthenticated discovery aid (see <a href="#security" class="auto internal xref">Section 8</a>).<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">A DDB describes a service being offered by the sender; it is not a request or query for a service. Any seek/query semantics (e.g., a seek/query flag defined by the surrounding transport container's own framing) are properties of that container, not of the DDB payload itself. In particular, a DDB with an absent or empty Instance Name field (see <a href="#instance-name" class="auto internal xref">Section 3.4.2</a>) indicates only that no specific instance is being named, not that the sender is seeking rather than providing the service.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3.1-2.1">
-            <p id="section-3.1-2.1.1">OPEN ISSUE: This directionality constraint has not yet been discussed with the working group. If a future revision wants to support DDB content in a query/request role (e.g., a client advertising interest in a service type before association), this section will need to define how that role is distinguished from a service offer.<a href="#section-3.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3.1-3.1">
+            <p id="section-3.1-3.1.1">OPEN ISSUE: This directionality constraint has not yet been discussed with the working group. If a future revision wants to support DDB content in a query/request role (e.g., a client advertising interest in a service type before association), this section will need to define how that role is distinguished from a service offer.<a href="#section-3.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1475,7 +1479,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-3.3-4">TLV fields <span class="bcp14">MUST</span> be processed in the order they appear. Encoders <span class="bcp14">MUST NOT</span> include more than one TLV field with the same Type value. Decoders that encounter duplicate Type values <span class="bcp14">MUST</span> use the last instance and discard earlier ones, in order to remain robust against malformed input.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.3-4">TLV fields <span class="bcp14">MUST</span> be processed in the order they appear. Encoders <span class="bcp14">MUST NOT</span> include more than one TLV field with the same Type value. A decoder that encounters a TLV field whose Type value has already appeared in the same DDB <span class="bcp14">MUST</span> treat the entire DDB as malformed and discard it; see <a href="#parser-differentials" class="auto internal xref">Section 8.5</a>. This applies to all Type values, including unrecognized and Private Use values. Padding octets (Type 0x00) are not TLV fields and are not subject to this rule.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
 <p id="section-3.3-5">An implementation <span class="bcp14">MUST</span> ignore (skip past) any TLV field whose Type it does not recognize.<a href="#section-3.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1729,6 +1733,11 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <dd style="margin-left: 1.5em" id="section-3.4.5-1.6">
               <p id="section-3.4.5-1.6.1">In the vast majority of short-range proximity scenarios, the domain is "local" and this field can be omitted to save space.<a href="#section-3.4.5-1.6.1" class="pilcrow">¶</a></p>
 </dd>
+            <dd class="break"></dd>
+<dt id="section-3.4.5-1.7">Note:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.4.5-1.8">
+              <p id="section-3.4.5-1.8.1">The Domain field is UTF-8, whereas the Hostname field (<a href="#hostname" class="auto internal xref">Section 3.4.8</a>) is ASCII with internationalized labels in A-label form. This difference is deliberate and mirrors DNS-SD practice. <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 4.1.3 recommends that the &lt;Domain&gt; portion of a Service Instance Name be represented as precomposed UTF-8 (Unicode Normalization Form C). An SRV target, by contrast, is a host name used for address resolution and as the TLS Server Name Indication value, which requires A-labels (<span>[<a href="#RFC6066" class="cite xref">RFC6066</a>]</span>, Section 3). Encoders <span class="bcp14">MUST</span> encode the Domain exactly as it appears in the Service Instance Name. A receiver that needs the A-label form (e.g., to issue a unicast DNS query) can derive it per <span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span>.<a href="#section-3.4.5-1.8.1" class="pilcrow">¶</a></p>
+</dd>
           <dd class="break"></dd>
 </dl>
 </section>
@@ -1760,7 +1769,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <span class="break"></span><dl class="dlParallel" id="section-3.4.7-1">
             <dt id="section-3.4.7-1.1">Value:</dt>
             <dd style="margin-left: 1.5em" id="section-3.4.7-1.2">
-              <p id="section-3.4.7-1.2.1">A sequence of length-prefixed UTF-8 strings, one per DNS-SD subtype that the service instance supports. Each subtype string is the subtype label only (without the "_sub.&lt;service&gt;.&lt;domain&gt;" suffix), preceded by its 1-octet length. Example: the subtype "_print" (defined by IPP Everywhere <span>[<a href="#IPPEVE" class="cite xref">IPPEVE</a>]</span>) would be encoded as 0x0A followed by "_print" (6 octets).<a href="#section-3.4.7-1.2.1" class="pilcrow">¶</a></p>
+              <p id="section-3.4.7-1.2.1">A sequence of length-prefixed UTF-8 strings, one per DNS-SD subtype that the service instance supports. Each subtype string is the subtype label only (without the "_sub.&lt;service&gt;.&lt;domain&gt;" suffix), preceded by its 1-octet length. Example: the subtype "_print" (defined by IPP Everywhere <span>[<a href="#IPPEVE" class="cite xref">IPPEVE</a>]</span>) would be encoded as 0x06 followed by "_print" (6 octets).<a href="#section-3.4.7-1.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.4.7-1.3">Constraints:</dt>
@@ -1815,7 +1824,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <p id="section-3.5-1.2.1">Encode the Service Name field (Type 0x01) first. This is the primary identifier of what kind of service is being described.<a href="#section-3.5-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.5-1.3">
-            <p id="section-3.5-1.3.1">Encode remaining fields in no required order, though the ordering Service Name -&gt; Instance Name -&gt; TXT -&gt; UUID -&gt; others is <span class="bcp14">RECOMMENDED</span> as it places the most informative fields first, which is useful when receivers truncate parsing on constrained implementations.<a href="#section-3.5-1.3.1" class="pilcrow">¶</a></p>
+            <p id="section-3.5-1.3.1">Encode remaining fields in no required order, though the ordering Service Name -&gt; Instance Name -&gt; TXT -&gt; UUID -&gt; others is <span class="bcp14">RECOMMENDED</span> as it places the most informative fields first, which is useful when a transport delivers a truncated DDB (see Decoding Rule 5).<a href="#section-3.5-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.5-1.4">
             <p id="section-3.5-1.4.1">Omit any optional field that has no value to convey, to minimize encoded size.<a href="#section-3.5-1.4.1" class="pilcrow">¶</a></p>
@@ -1843,13 +1852,15 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <p id="section-3.6-1.2.2">
 a. Read the Type octet. If Type is 0x00, this is a padding byte; consume it and continue to the next field.<a href="#section-3.6-1.2.2" class="pilcrow">¶</a></p>
 <p id="section-3.6-1.2.3">
-b. Read the Length octet. If Length is 0xFF, read the next two octets as a 16-bit big-endian extended length.<a href="#section-3.6-1.2.3" class="pilcrow">¶</a></p>
+b. If the Type has already been seen in this DDB, stop and discard the DDB as malformed.<a href="#section-3.6-1.2.3" class="pilcrow">¶</a></p>
 <p id="section-3.6-1.2.4">
-c. Read Value octets (count given by the resolved length).<a href="#section-3.6-1.2.4" class="pilcrow">¶</a></p>
+c. Read the Length octet. If Length is 0xFF, read the next two octets as a 16-bit big-endian extended length.<a href="#section-3.6-1.2.4" class="pilcrow">¶</a></p>
 <p id="section-3.6-1.2.5">
-d. If the Type is known, process according to <a href="#field-type-registry" class="auto internal xref">Section 3.4</a>.<a href="#section-3.6-1.2.5" class="pilcrow">¶</a></p>
+d. Read Value octets (count given by the resolved length).<a href="#section-3.6-1.2.5" class="pilcrow">¶</a></p>
 <p id="section-3.6-1.2.6">
-e. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.6" class="pilcrow">¶</a></p>
+e. If the Type is known, process according to <a href="#field-type-registry" class="auto internal xref">Section 3.4</a>.<a href="#section-3.6-1.2.6" class="pilcrow">¶</a></p>
+<p id="section-3.6-1.2.7">
+f. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.7" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.6-1.3">
             <p id="section-3.6-1.3.1">Continue until all octets of the DDB have been consumed.<a href="#section-3.6-1.3.1" class="pilcrow">¶</a></p>
@@ -1868,10 +1879,8 @@ e. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.6" cla
         <h3 id="name-ddb-payload-identity-and-me">
 <a href="#section-3.7" class="section-number selfRef">3.7. </a><a href="#name-ddb-payload-identity-and-me" class="section-name selfRef">DDB Payload Identity and Media Types</a>
         </h3>
-<p id="section-3.7-1">The canonical DDB payload is the exact octet sequence defined by <a href="#ddb-format" class="auto internal xref">Section 3.7, Paragraph 2</a>: one Version octet followed by zero or more TLV fields. A container that carries a DDB carries this payload without altering its internal format.<a href="#section-3.7-1" class="pilcrow">¶</a></p>
-<div id="ddb-format">
-<p id="section-3.7-2">When a content-type identifier is needed, a DDB payload is identified by the MIME media type "application/vnd.dnssd.ddb".<a href="#section-3.7-2" class="pilcrow">¶</a></p>
-</div>
+<p id="section-3.7-1">The canonical DDB payload is the exact octet sequence defined by <a href="#ddb-format" class="auto internal xref">Section 3</a>: one Version octet followed by zero or more TLV fields. A container that carries a DDB carries this payload without altering its internal format.<a href="#section-3.7-1" class="pilcrow">¶</a></p>
+<p id="section-3.7-2">When a content-type identifier is needed, a DDB payload is identified by the MIME media type "application/dnssd-ddb".<a href="#section-3.7-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1881,7 +1890,7 @@ e. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.6" cla
       <h2 id="name-relationship-to-dns-sd">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-relationship-to-dns-sd" class="section-name selfRef">Relationship to DNS-SD</a>
       </h2>
-<div id="deriving-dns-sd-records-from-a-ddb">
+<div id="ddb-to-dnssd">
 <section id="section-4.1">
         <h3 id="name-deriving-dns-sd-records-fro">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-deriving-dns-sd-records-fro" class="section-name selfRef">Deriving DNS-SD Records from a DDB</a>
@@ -1895,7 +1904,7 @@ e. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.6" cla
           <dd class="break"></dd>
 <dt id="section-4.1-2.3">SRV record:</dt>
           <dd style="margin-left: 1.5em" id="section-4.1-2.4">
-            <p id="section-4.1-2.4.1">RDATA is &lt;priority&gt; &lt;weight&gt; &lt;port&gt; &lt;hostname&gt;, using the Port field and, if present, the Hostname field (Type 0x08) as the target. If Hostname is absent, the SRV target is not known until DNS-SD is queried after IP association.<a href="#section-4.1-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-4.1-2.4.1">RDATA is &lt;priority&gt; &lt;weight&gt; &lt;port&gt; &lt;hostname&gt;, using the Port field and, if present, the Hostname field (Type 0x08) as the target. If Hostname is absent, the SRV target is not known until DNS-SD is queried after IP association. A DDB does not encode SRV priority or weight; a client <span class="bcp14">MUST</span> synthesize both as 0, as <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 5 specifies for the common case of a service instance described by a single SRV record.<a href="#section-4.1-2.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-4.1-2.5">TXT record:</dt>
@@ -1913,6 +1922,7 @@ e. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.6" cla
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-constructing-a-ddb-from-dns" class="section-name selfRef">Constructing a DDB from DNS-SD Records</a>
         </h3>
 <p id="section-4.2-1">To serialize DNS-SD records into a DDB: set Version = 0x01; extract the Service Name and Instance Name from the PTR and Service Instance Name; copy the TXT record RDATA verbatim into TXT Data (extracting a "UUID" key into the UUID field, if present); copy Port from the SRV record; copy the SRV target hostname into Hostname (Type 0x08) if pre-connection hostname knowledge is needed; and omit Domain if it is "local".<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">A DDB represents a single SRV record. Because SRV priority and weight affect client behavior only when multiple SRV records exist for the same Service Instance Name, they are not encoded.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="domain-handling">
@@ -1983,7 +1993,7 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 89 9A AB BC CD DE EF F0  ; UUID bytes
 
 06 02                    ; Type=Port, Length=2
-02 7F                    ; port 631 (0x027F)
+02 77                    ; port 631 (0x0277)
 </pre><a href="#section-5.2-2" class="pilcrow">¶</a>
 </div>
 <p id="section-5.2-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
@@ -2128,7 +2138,7 @@ A1 B2 C3 D4 E5 F6 07 08 ;
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x02</td>
-              <td class="text-left" rowspan="1" colspan="1">Service Instance Name</td>
+              <td class="text-left" rowspan="1" colspan="1">Instance Name</td>
               <td class="text-left" rowspan="1" colspan="1">This document</td>
             </tr>
             <tr>
@@ -2185,7 +2195,7 @@ A1 B2 C3 D4 E5 F6 07 08 ;
         <h3 id="name-mime-type-registration">
 <a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-mime-type-registration" class="section-name selfRef">MIME Type Registration</a>
         </h3>
-<p id="section-7.2-1">A request to register the MIME media type "application/vnd.dnssd.ddb", identifying the DDB payload defined in <a href="#ddb-payload-identity" class="auto internal xref">Section 3.7</a>, should be submitted to IANA per <span>[<a href="#RFC6838" class="cite xref">RFC6838</a>]</span>. This specification does not formally request that registration at this draft stage.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-1">The MIME media type "application/dnssd-ddb", identifying the DDB payload defined in <a href="#ddb-payload-identity" class="auto internal xref">Section 3.7</a>, is intended for registration in the standards tree per <span>[<a href="#RFC6838" class="cite xref">RFC6838</a>]</span>. This specification does not formally request that registration at this draft stage.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2229,12 +2239,20 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 <p id="section-8.4-1">DDB transport containers typically do not provide cryptographic integrity protection. An on-path attacker in close physical proximity could modify advertisement contents. Applications that require integrity <span class="bcp14">SHOULD</span> sign DDB content using an application-layer digital signature (e.g., a device certificate or vendor-defined signing mechanism) conveyed out-of-band or in a companion record, if the transport and deployment context support it.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="sensitive-data-in-txt-records">
+<div id="parser-differentials">
 <section id="section-8.5">
-        <h3 id="name-sensitive-data-in-txt-recor">
-<a href="#section-8.5" class="section-number selfRef">8.5. </a><a href="#name-sensitive-data-in-txt-recor" class="section-name selfRef">Sensitive Data in TXT Records</a>
+        <h3 id="name-parser-differentials">
+<a href="#section-8.5" class="section-number selfRef">8.5. </a><a href="#name-parser-differentials" class="section-name selfRef">Parser Differentials</a>
         </h3>
-<p id="section-8.5-1">The TXT Data field can carry arbitrary key=value pairs. Senders <span class="bcp14">MUST NOT</span> include long-lived secrets (Wi-Fi PSKs, passwords, private keys) in the TXT Data field of a DDB, as this data is transmitted in cleartext over short-range radio.<a href="#section-8.5-1" class="pilcrow">¶</a></p>
+<p id="section-8.5-1">If decoders resolved duplicate TLV fields differently (for example, one keeping the first instance and another the last), an attacker could craft a DDB that a filtering or validating component interprets one way and an end consumer interprets another, such as a Service Name or Hostname that passes inspection but is acted upon differently. Requiring decoders to discard any DDB containing duplicate Type values eliminates this ambiguity. Since conformant encoders never emit duplicates, rejection does not affect interoperability between conformant implementations.<a href="#section-8.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sensitive-data-in-txt-records">
+<section id="section-8.6">
+        <h3 id="name-sensitive-data-in-txt-recor">
+<a href="#section-8.6" class="section-number selfRef">8.6. </a><a href="#name-sensitive-data-in-txt-recor" class="section-name selfRef">Sensitive Data in TXT Records</a>
+        </h3>
+<p id="section-8.6-1">The TXT Data field can carry arbitrary key=value pairs. Senders <span class="bcp14">MUST NOT</span> include long-lived secrets (Wi-Fi PSKs, passwords, private keys) in the TXT Data field of a DDB, as this data is transmitted in cleartext over short-range radio.<a href="#section-8.6-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2306,6 +2324,10 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 <dt id="RFC4122">[RFC4122]</dt>
         <dd>
 <span class="refAuthor">Leach, P.</span>, <span class="refAuthor">Mealling, M.</span>, and <span class="refAuthor">R. Salz</span>, <span class="refTitle">"A Universally Unique IDentifier (UUID) URN Namespace"</span>, <span class="seriesInfo">RFC 4122</span>, <span class="seriesInfo">DOI 10.17487/RFC4122</span>, <time datetime="2005-07" class="refDate">July 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4122">https://www.rfc-editor.org/rfc/rfc4122</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6066">[RFC6066]</dt>
+        <dd>
+<span class="refAuthor">Eastlake 3rd, D.</span>, <span class="refTitle">"Transport Layer Security (TLS) Extensions: Extension Definitions"</span>, <span class="seriesInfo">RFC 6066</span>, <span class="seriesInfo">DOI 10.17487/RFC6066</span>, <time datetime="2011-01" class="refDate">January 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6066">https://www.rfc-editor.org/rfc/rfc6066</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC6762">[RFC6762]</dt>
         <dd>
