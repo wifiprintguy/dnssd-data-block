@@ -1,5 +1,5 @@
 ---
-title: "DNS-SD Data Block Encoding for Non-DNS Transports"
+title: "DNS-SD Data Block: An Encoding for Non-IP Transports"
 abbrev: "DNS-SD Data Block"
 category: std
 
@@ -129,6 +129,8 @@ TLV:
 # DNS-SD Data Block (DDB) Format {#ddb-format}
 
 ## Applicability and Directionality
+
+DDB is intended for transports over which DNS-SD itself cannot operate, such as short-range proximity and pre-association technologies. Where IP connectivity is available and DNS-SD is usable, implementations SHOULD use DNS-SD directly rather than conveying DDBs over IP. Relaying a DDB over an IP-based protocol (e.g., from a gateway or for diagnostics) is outside the scope of this specification and does not change its status as an unauthenticated discovery aid (see {{security}}).
 
 A DDB describes a service being offered by the sender; it is not a request or query for a service. Any seek/query semantics (e.g., a seek/query flag defined by the surrounding transport container's own framing) are properties of that container, not of the DDB payload itself. In particular, a DDB with an absent or empty Instance Name field (see {{instance-name}}) indicates only that no specific instance is being named, not that the sender is seeking rather than providing the service.
 
