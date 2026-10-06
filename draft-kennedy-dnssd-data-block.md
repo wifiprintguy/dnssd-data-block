@@ -21,11 +21,13 @@ venue:
 author:
  -
     fullname: Smith Kennedy
-    organization:
+    organization: Independent
     email: smitty.standards@gmail.com
 
 normative:
   RFC1035:
+  RFC3629:
+  RFC5890:
   RFC5891:
   RFC6335:
   RFC6763:
@@ -33,13 +35,23 @@ normative:
   RFC9562:
 
 informative:
+  RFC2782:
   RFC4122:
   RFC6066:
   RFC6762:
   RFC6838:
   RFC7558:
   RFC8259:
+  RFC8882:
   RFC8949:
+  IEEE802.1AR:
+    title: "IEEE Standard for Local and metropolitan area networks - Secure Device Identity"
+    author:
+      -
+        organization: IEEE
+    seriesinfo:
+      IEEE: "802.1AR"
+    target: https://1.ieee802.org/security/802-1ar
   BT-TDS:
     title: "Transport Discovery Service 1.1"
     author:
@@ -70,7 +82,7 @@ informative:
 
 --- abstract
 
-The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS-SD service information over non-IP transports used by short-range peer-to-peer or proximity-based advertisement and discovery technologies such as the Bluetooth Low Energy Transport Discovery Service or NFC Verb NDEF Records.
+The DNS-SD Data Block (DDB) is a compact, Type-Length-Value (TLV) encoded container for conveying DNS-Based Service Discovery (DNS-SD) service information over non-IP transports used by short-range peer-to-peer or proximity-based advertisement and discovery technologies, such as the Bluetooth Low Energy Transport Discovery Service or Near Field Communication (NFC) Verb NFC Data Exchange Format (NDEF) records.
 
 --- middle
 
@@ -78,7 +90,7 @@ The DNS-SD Data Block (DDB) is a compact TLV encoded container for conveying DNS
 
 DNS-based Service Discovery {{RFC6763}} is widely deployed for service advertisement on IP networks. Printers, media servers, file-sharing, and many other types of services are advertised and discovered via DNS-SD.
 
-There are circumstances where ancillary advertisement and discovery technologies can improve service advertisement and discovery coverage. Some network environments may have non-trivial network infrastructure topologies that complicate the use of mDNS {{RFC6762}}, but that are also not provisioned with infrastructure DNS-SD. There are also peer-to-peer wireless IP networking technologies used for transient communications and could support DNS-SD services, but that suffer from a poor user experience due to a lack of a standard way to provide the DNS-SD service information before a connection has been established (what is sometimes referred to as "pre-association service discovery"). Both of these could benefit from using ancillary short range peer-to-peer or proximity focused advertisement and discovery technologies to convey DNS-SD service information.
+There are circumstances where ancillary advertisement and discovery technologies can improve service advertisement and discovery coverage. Some network environments may have non-trivial network infrastructure topologies that complicate the use of mDNS {{RFC6762}}, but that are also not provisioned with infrastructure DNS-SD. There are also peer-to-peer wireless IP networking technologies that are used for transient communications and could support DNS-SD services, but that suffer from a poor user experience due to a lack of a standard way to provide the DNS-SD service information before a connection has been established (what is sometimes referred to as "pre-association service discovery"). Both of these could benefit from using ancillary short-range peer-to-peer or proximity-focused advertisement and discovery technologies to convey DNS-SD service information.
 
 This problem is related to, but distinct from, the scaling problem addressed by {{RFC7558}}: solutions to that problem extend DNS-SD's reach within IP networks that already have IP connectivity established. DDB instead addresses the complementary case of conveying DNS-SD service information before IP connectivity exists at all, or where none is expected to exist. In deployments where physical proximity between devices can be assumed, such as the segmented-network scenario below, DDB carried over an ancillary technology can also serve as an alternative to deploying {{RFC7558}}-class scaling solutions, sidestepping the network-segmentation problem entirely rather than solving it via Scalable DNS-SD.
 
@@ -88,7 +100,7 @@ Examples include the following:
 
 * A television with an NFC interface in a hotel room advertises its media streaming services and supported carrier types using NFC Verb NDEF Records {{NFC-VERB}}. A client tapped to the TV reviews the advertised connection carriers and services and offers its user a selected optimal pathway before engaging in the process of connecting to the TV.
 
-For each of these scenarios and the ancillary discovery technologies used, there is a need to represent DNS-SD service information in a format that is not native to the technology's transport. The standards organizations responsible for these ancillary technologies are scoped to MAC/PHY-layer specification and do not consider DNS-SD service semantics to be within their area of expertise; defining such an encoding independently in each of those venues would risk incompatible, non-interoperable results. These organizations have accordingly deferred definition of this encoding to the DNS-SD community.
+Each of these ancillary discovery technologies was designed in part to carry application-layer service descriptions. Both include a field keyed by an organization identifier, whose contents are defined by the identified organization. This document defines that content for DNS-SD: a single encoding that each technology can reference, and that future ancillary discovery protocols can adopt.
 
 This document defines the DDB format and its associated encoding and decoding rules for interoperable use. The DDB is designed to:
 
@@ -98,7 +110,7 @@ This document defines the DDB format and its associated encoding and decoding ru
 
 * Round-trip losslessly to and from DNS-SD PTR, SRV, and TXT records for the fields it encodes, in the common case of a service instance described by a single SRV record with zero priority and weight (see {{ddb-to-dnssd}}).
 
-Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum). In defining DDB, this document supplies the DNS-SD encoding that these standards bodies have identified as needed but outside their own scope to define, so that each can reference a single interoperable IETF-defined convention rather than specifying its own.
+Use of DDB in specific external registries or protocol elements may still require assignment or approval by the relevant standards body (e.g., Bluetooth SIG, NFC Forum).
 
 # Conventions and Terminology
 
@@ -125,11 +137,11 @@ UUID:
 : A Universally Unique Identifier as defined in {{RFC9562}} (formerly {{RFC4122}}), encoded as 16 octets in network byte order following the binary representation defined therein.
 
 TLV:
-: Type-Length-Value - a binary encoding scheme consisting of a type code field indicating the type, a length field indicating the length of the value field, and a value field containing the actual payload. The size of the type and length fields are typically fixed.
+: Type-Length-Value - a binary encoding scheme consisting of a type code field indicating the type, a length field indicating the length of the value field, and a value field containing the actual payload. The type and length fields are typically of fixed size.
 
 # DNS-SD Data Block (DDB) Format {#ddb-format}
 
-## Applicability and Directionality
+## Applicability and Directionality {#applicability}
 
 DDB is intended for transports over which DNS-SD itself cannot operate, such as short-range proximity and pre-association technologies. Where IP connectivity is available and DNS-SD is usable, implementations SHOULD use DNS-SD directly rather than conveying DDBs over IP. Relaying a DDB over an IP-based protocol (e.g., from a gateway or for diagnostics) is outside the scope of this specification and does not change its status as an unauthenticated discovery aid (see {{security}}).
 
@@ -153,9 +165,9 @@ A DDB begins with a single-octet Version field:
 {: title="DDB Block Header"}
 
 Version (1 octet):
-: The version of this DDB encoding. This specification defines version 0x01. A decoder that encounters an unknown version value SHOULD treat the entire block as uninterpretable and MUST NOT attempt to parse the TLV fields.
+: The version of this DDB encoding. This specification defines version 0x01. A decoder that encounters an unknown version value MUST treat the entire block as uninterpretable and MUST NOT attempt to parse the TLV fields.
 
-: Additive, backward-compatible extensions SHOULD be introduced by defining new TLV Type values or related registry entries without changing the Version value. The Version value is intended for wire-format or processing changes that are not backward compatible with earlier versions.
+: Additive, backward-compatible extensions are introduced by defining new TLV Type values or related registry entries without changing the Version value. The Version value is intended for wire-format or processing changes that are not backward compatible with earlier versions.
 
 The remainder of the DDB is a sequence of zero or more TLV fields as defined in {{tlv-field-structure}}.
 
@@ -173,9 +185,9 @@ Each TLV field in a DDB has the following structure:
 {: title="TLV Field Structure"}
 
 Type (1 octet):
-: Identifies the type of the field. Values are defined in {{field-type-registry}}. Value 0xFF is reserved. Values 0x09-0xEF are reserved for future assignment. Values 0xF0-0xFE are available for private/experimental use and MUST NOT be used in interoperability contexts.
+: Identifies the type of the field. Values are defined in {{field-type-registry}}. Value 0xFF is reserved for future extension. Values 0x09-0xEF are unassigned and available for assignment ({{iana}}). Values 0xF0-0xFE are reserved for Private Use ({{RFC8126}}) and MUST NOT be used in interoperability contexts.
 
-: The special value 0x00 is defined as a padding (NOP) octet. A 0x00 byte in the TLV stream is consumed as a single padding byte with no associated Length or Value fields. Encoders MUST NOT emit padding bytes except when byte-alignment is required by a specific transport framing. Decoders MUST skip 0x00 bytes and continue parsing the next TLV field.
+: The special value 0x00 is defined as a padding (NOP) octet. A 0x00 byte in the TLV stream is consumed as a single padding byte with no associated Length or Value fields. Encoders MUST NOT emit padding bytes except when required by a specific transport's framing (e.g., to pad to a fixed size). Decoders MUST skip 0x00 bytes and continue parsing the next TLV field.
 
 Length (1 octet):
 : The length of the Value field in octets. A Length of 0x00 indicates an empty value, which is valid only for field types whose definition explicitly permits it.
@@ -299,7 +311,7 @@ Value:
 : A UTF-8 string containing the DNS domain in which this service is registered, without a trailing dot. For example: "local" (for mDNS) or "example.com" (for unicast DNS-SD).
 
 Constraints:
-: Optional. If absent, receivers MUST assume the domain is "local" (i.e., the service is on the local link and discoverable via mDNS). Length 1 through 253 octets.
+: Optional. If absent, receivers MUST assume the domain is "local" (i.e., the service is on the local link and discoverable via mDNS). Encoders SHOULD omit this field when the domain is "local", and MUST include it otherwise (e.g., for Wide-Area DNS-SD per {{RFC6763}}, Section 11). Length 1 through 253 octets.
 
 Note:
 : In the vast majority of short-range proximity scenarios, the domain is "local" and this field can be omitted to save space.
@@ -328,7 +340,7 @@ Constraints:
 Value:
 : An ASCII string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "device-abc.example.com".
 
-: The string is encoded in ASCII (not UTF-8) and MUST consist only of DNS label characters (letters, digits, hyphens) and period separators, per the preferred name syntax of {{RFC1035}}, Section 2.3.1. Internationalized hostnames (IDN) MUST be encoded in their ACE (ASCII-Compatible Encoding) form per {{RFC5891}}. The string MUST NOT include a trailing dot and MUST NOT be null-terminated.
+: The string is encoded in ASCII (not UTF-8) and MUST consist only of DNS label characters (letters, digits, hyphens) and period separators, per the preferred name syntax of {{RFC1035}}, Section 2.3.1. Internationalized labels MUST be encoded as A-labels ({{RFC5890}}). The string MUST NOT include a trailing dot and MUST NOT be null-terminated.
 
 Constraints:
 : Optional. Length MUST be between 1 and 253 octets, consistent with the maximum length of a fully qualified domain name. If absent, the client MUST obtain the SRV target hostname via DNS-SD once an IP connection is established. Including this field is RECOMMENDED when the hostname is needed for TLS SNI certificate validation prior to IP-level name resolution.
@@ -346,7 +358,7 @@ Note:
 
 4. Omit any optional field that has no value to convey, to minimize encoded size.
 
-5. All string values are UTF-8 encoded and MUST NOT be null-terminated, except the Hostname field ({{hostname}}), which is restricted to ASCII as specified in its own field definition. String lengths in TLV Length fields count octets, not characters.
+5. All string values are UTF-8 encoded ({{RFC3629}}) and MUST NOT be null-terminated, except the Hostname field ({{hostname}}), which is restricted to ASCII as specified in its own field definition. String lengths in TLV Length fields count octets, not characters.
 
 6. A single TLV field using extended-length encoding may carry a value of at most 65,535 octets, occupying 1 (Type) + 3 (0xFF escape + 2-octet extended length) + 65,535 (Value) = 65,539 octets. No absolute maximum is imposed on the total DDB length; practical transports impose far tighter limits, and implementations SHOULD reject DDBs that exceed the limit imposed by the transport in use.
 
@@ -378,7 +390,7 @@ Note:
 
 The canonical DDB payload is the exact octet sequence defined by {{ddb-format}}: one Version octet followed by zero or more TLV fields. A container that carries a DDB carries this payload without altering its internal format.
 
-When a content-type identifier is needed, a DDB payload is identified by the MIME media type "application/dnssd-ddb".
+When a content-type identifier is needed, a DDB payload is identified by the media type "application/dnssd-ddb".
 
 # Relationship to DNS-SD
 
@@ -389,7 +401,7 @@ The Service Instance Name, formed from the Instance Name, Service Name, and Doma
 A DDB can also convey SRV and TXT information directly, so that the client can use it without performing resolution:
 
 SRV information:
-: The Port field (or, if absent, the registry-assigned port; see {{port}}) and the Hostname field correspond to the SRV port and target. If Hostname is absent, the SRV target is not known until DNS-SD is queried after IP association. Priority and weight are not conveyed and are treated as 0, as {{RFC6763}}, Section 5 specifies for the common case of a service instance described by a single SRV record.
+: The Port field (or, if absent, the registry-assigned port; see {{port}}) and the Hostname field correspond to the SRV port and target. If Hostname is absent, the SRV target is not known until DNS-SD is queried after IP association. Priority and weight ({{RFC2782}}) are not conveyed and are treated as 0, as {{RFC6763}}, Section 5 specifies for the common case of a service instance described by a single SRV record.
 
 TXT information:
 : The TXT Data field is the TXT RDATA verbatim. If the UUID field is present, the client MUST reconstruct the TXT string "UUID=" followed by the 36-character lowercase hyphenated form of the UUID, and append it to the end of the TXT record. If the TXT Data field is absent, the reconstructed TXT record consists of that single string.
@@ -402,10 +414,6 @@ Subtypes:
 To serialize DNS-SD records into a DDB: set Version = 0x01; extract the Service Name and Instance Name from the PTR and Service Instance Name; copy the TXT record RDATA into TXT Data, optionally moving a "UUID" key/value pair into the UUID field as specified in {{uuid}}; copy Port from the SRV record (it MAY be omitted if it equals the port assigned to the Service Name; see {{port}}); copy the SRV target hostname into Hostname (Type 0x08) if pre-connection hostname knowledge is needed; copy the subtype labels of any subtype PTR records that reference the Service Instance Name into the Subtype List field; and omit Domain if it is "local".
 
 A DDB represents a single SRV record. Because SRV priority and weight affect client behavior only when multiple SRV records exist for the same Service Instance Name, they are not encoded.
-
-## Domain Handling
-
-The Domain field SHOULD be omitted when the domain is "local", and MUST be included otherwise (e.g., for Wide-Area DNS-SD per {{RFC6763}}, Section 11). A DDB decoder that finds no Domain field MUST assume "local".
 
 # Examples
 
@@ -471,13 +479,13 @@ The Port field is included because this printer listens on 8631 rather than port
 
 CBOR {{RFC8949}} and JSON {{RFC8259}} are both viable encoding options with good tooling. TLV was chosen for the following reasons:
 
-* Minimal overhead per field: a simple string field costs 2 octets of overhead (Type + Length) versus CBOR's 1+ octets for a key plus 1+ octets for the string header -- comparable at small scale, but TLV's fixed 2-octet overhead per field is more predictable.
+* Minimal overhead per field: a simple string field costs 2 octets of overhead (Type + Length) versus CBOR's 1+ octets for a key plus 1+ octets for the string header -- comparable at small scale, but TLV's 2-octet overhead per field (4 octets for values longer than 254 octets) is more predictable.
 
 * Implementation simplicity: TLV parsing requires only arithmetic on byte arrays; no recursive descent or schema lookup is needed. This supports implementation on very constrained devices (e.g., embedded firmware).
 
 * DNS-SD TXT data is already in a length-prefixed string encoding; embedding it verbatim in a TLV field avoids any re-encoding.
 
-* CBOR is a strong alternative and SHOULD be explored in a future revision, particularly if the broader IETF context moves toward CBOR-based service advertisement encodings.
+* CBOR is a strong alternative and could be explored in a future revision, particularly if the broader IETF context moves toward CBOR-based service advertisement encodings.
 
 ## Why DNS-SD String Encoding and Not Numeric Types
 
@@ -527,27 +535,29 @@ Notes:
 
 Registration Policy: Values 0x01-0xEF use "Specification Required" {{RFC8126}}. Values 0xF0-0xFE are "Private Use". Value 0xFF is "Reserved". Value 0x00 is defined as a Padding (NOP) octet ({{tlv-field-structure}}) and does not participate in the assignment pool.
 
+Designated experts reviewing a request should verify that the proposed field: conveys DNS-SD service information, or information directly supporting its use, that no existing field can represent; has a fully specified Value encoding, including length and character constraints, sufficient for the validation required by {{decoding-rules}}; and is optional, since decoders implementing earlier specifications will skip it ({{tlv-field-structure}}). A field that receivers must understand requires a new Version value instead. Because the code point space is small, experts should be conservative in making assignments.
+
 Initial entries (defined by this specification):
 
-| Value | Name | Reference |
-|---|---|---|
-| 0x00 | Padding (NOP) | This document |
-| 0x01 | Service Name | This document |
-| 0x02 | Instance Name | This document |
-| 0x03 | TXT Data | This document |
-| 0x04 | UUID | This document |
-| 0x05 | Domain | This document |
-| 0x06 | Port | This document |
-| 0x07 | Subtype List | This document |
-| 0x08 | Hostname | This document |
-| 0x09-0xEF | Unassigned | This document |
-| 0xF0-0xFE | Private Use | This document |
-| 0xFF | Reserved | This document |
+| Value | Name | Reference | Notes |
+|---|---|---|---|
+| 0x00 | Padding (NOP) | This document | Single octet; no Length or Value |
+| 0x01 | Service Name | This document | |
+| 0x02 | Instance Name | This document | |
+| 0x03 | TXT Data | This document | |
+| 0x04 | UUID | This document | |
+| 0x05 | Domain | This document | |
+| 0x06 | Port | This document | |
+| 0x07 | Subtype List | This document | |
+| 0x08 | Hostname | This document | |
+| 0x09-0xEF | Unassigned | This document | |
+| 0xF0-0xFE | Private Use | This document | |
+| 0xFF | Reserved | This document | Reserved for future extension (e.g., an extended Type encoding) |
 {: title="DNS-SD Data Block TLV Types"}
 
-## MIME Type Registration
+## Media Type Registration
 
-The MIME media type "application/dnssd-ddb", identifying the DDB payload defined in {{ddb-payload-identity}}, is intended for registration in the standards tree per {{RFC6838}}. This specification does not formally request that registration at this draft stage.
+The media type "application/dnssd-ddb", identifying the DDB payload defined in {{ddb-payload-identity}}, is intended for registration in the standards tree per {{RFC6838}}. This specification does not formally request that registration at this draft stage.
 
 # Security Considerations {#security}
 
@@ -555,13 +565,25 @@ DDBs are typically carried in unauthenticated, short-range broadcast or proximit
 
 ## Spoofing and Impersonation
 
-Any device within range of the carrying transport can transmit a DDB claiming any Service Name, Instance Name, or UUID. Receivers MUST NOT rely on DDB content alone to establish trust. A DDB is a discovery aid; any security-relevant properties (authentication, authorization) MUST be established over the application protocol after connectivity is established (e.g., TLS over IPP, 802.1X, device attestation).
+Any device within range of the carrying transport can transmit a DDB claiming any Service Name, Instance Name, or UUID. Receivers MUST NOT rely on DDB content alone to establish trust. A DDB is a discovery aid; any security-relevant properties (authentication, authorization) MUST be established over the application protocol after connectivity is established (e.g., IPP over TLS, or device attestation).
 
-## Privacy: Persistent Identifiers
+## Hostname and TLS Validation
+
+The Hostname field allows a client to validate a TLS server certificate before IP-level name resolution. Validation against a Hostname taken from a DDB proves only that the server holds a certificate for that name, not that it is the device that sent the DDB: an attacker can advertise a DDB naming a host it controls and for which it holds a valid certificate. Clients MUST NOT treat successful TLS validation against a DDB-supplied Hostname as evidence that the server is the proximate device, and SHOULD present the validated name to the user, or check it against names the client already trusts, before relying on it. Device identity credentials such as IEEE 802.1AR Secure Device Identifiers {{IEEE802.1AR}} can bind a certificate to a specific device; no mechanism currently associates such a credential with a DNS-SD service advertisement, whether conveyed by a DDB or otherwise, and defining one is outside the scope of this document.
+
+## Relay and Replay
+
+Receipt of a DDB over a short-range transport does not prove that the sender is physically nearby. An attacker can relay a DDB from a distant device, or replay a previously captured one, using equipment that extends the transport's effective range. Applications MUST NOT treat receipt of a DDB as proof of proximity; where proximity matters, it needs to be established by other means.
+
+## Privacy
+
+DDB conveys the same categories of information that DNS-SD publishes, so the privacy analysis of {{RFC8882}} applies. Broadcast transports can, however, expose that information to any receiver within radio range, including parties with no access to the IP network on which the service is offered, an audience that mDNS would not reach. Senders SHOULD apply to broadcast DDBs at least the information minimization they would apply on an untrusted network. Conversely, because a DDB is received passively and carries no query ({{applicability}}), receiving one discloses nothing about the client's interest in particular services, unlike DNS-SD browsing.
 
 The UUID field carries the same value as the TXT "UUID" key it encodes, which for many service types is a stable identifier. When carried in broadcast advertising, it can be used to track a device or its owner across locations and over time. Senders concerned about tracking SHOULD omit both the UUID field and the TXT "UUID" key from broadcast DDBs, or use a value that the service type permits to be rotated.
 
 The Instance Name often contains human-readable device names (e.g., "Jane's MacBook Printer") which are personally identifying. Devices SHOULD allow users to customize the Instance Name used in proximity advertisements.
+
+Other fields can also identify a device or its owner. Hostnames often embed a device or owner name, and TXT Data can carry serial numbers, location descriptions, or administrative URLs. Senders SHOULD include in broadcast DDBs only the TXT keys a client needs to select the service.
 
 ## Denial of Service
 
@@ -569,7 +591,7 @@ A malicious sender can flood receivers with large numbers of DDB-carrying advert
 
 ## Data Integrity
 
-DDB transport containers typically do not provide cryptographic integrity protection. An on-path attacker in close physical proximity could modify advertisement contents. Applications that require integrity SHOULD sign DDB content using an application-layer digital signature (e.g., a device certificate or vendor-defined signing mechanism) conveyed out-of-band or in a companion record, if the transport and deployment context support it.
+DDB transport containers typically do not provide cryptographic integrity protection. An on-path attacker in close physical proximity could modify advertisement contents. Applications that require integrity can sign DDB content using an application-layer digital signature (e.g., a device certificate or vendor-defined signing mechanism) conveyed out-of-band or in a companion record, if the transport and deployment context support it.
 
 ## Parser Differentials {#parser-differentials}
 
