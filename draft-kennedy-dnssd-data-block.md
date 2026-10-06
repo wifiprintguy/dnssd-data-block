@@ -133,7 +133,7 @@ TLV:
 
 DDB is intended for transports over which DNS-SD itself cannot operate, such as short-range proximity and pre-association technologies. Where IP connectivity is available and DNS-SD is usable, implementations SHOULD use DNS-SD directly rather than conveying DDBs over IP. Relaying a DDB over an IP-based protocol (e.g., from a gateway or for diagnostics) is outside the scope of this specification and does not change its status as an unauthenticated discovery aid (see {{security}}).
 
-A DDB describes a service being offered by the sender; it is not a request or query for a service. Any seek/query semantics (e.g., a seek/query flag defined by the surrounding transport container's own framing) are properties of that container, not of the DDB payload itself. In particular, a DDB with an absent or empty Instance Name field (see {{instance-name}}) indicates only that no specific instance is being named, not that the sender is seeking rather than providing the service.
+A DDB describes a service being offered by the sender; it is not a request or query for a service. Any seek/query semantics (e.g., a seek/query flag defined by the surrounding transport container's own framing) are properties of that container, not of the DDB payload itself.
 
 > OPEN ISSUE: This directionality constraint has not yet been discussed with the working group. If a future revision wants to support DDB content in a query/request role (e.g., a client advertising interest in a service type before association), this section will need to define how that role is distinguished from a service offer.
 
@@ -178,7 +178,7 @@ Type (1 octet):
 : The special value 0x00 is defined as a padding (NOP) octet. A 0x00 byte in the TLV stream is consumed as a single padding byte with no associated Length or Value fields. Encoders MUST NOT emit padding bytes except when byte-alignment is required by a specific transport framing. Decoders MUST skip 0x00 bytes and continue parsing the next TLV field.
 
 Length (1 octet):
-: The length of the Value field in octets. A Length of 0x00 indicates an empty value (valid for some field types; see individual field definitions).
+: The length of the Value field in octets. A Length of 0x00 indicates an empty value, which is valid only for field types whose definition explicitly permits it.
 
 : When a length of 255 octets is insufficient for a given field (notably TXT Data for rich service descriptions), the following extended-length encoding is used: if the Length octet is 0xFF, it is followed by two additional octets that carry the actual length as a 16-bit unsigned integer in network byte order, and the Value starts after those two octets. This extended form MUST NOT be used when the actual length is <= 254 octets.
 
@@ -197,7 +197,7 @@ The following Type values are defined by this specification.
 |---|---|---|
 | 0x00 | Padding (NOP) | N/A |
 | 0x01 | Service Name | Required |
-| 0x02 | Instance Name | Optional |
+| 0x02 | Instance Name | Required |
 | 0x03 | TXT Data | Optional |
 | 0x04 | UUID | Optional |
 | 0x05 | Domain | Optional |
@@ -209,7 +209,7 @@ The following Type values are defined by this specification.
 | 0xFF | Reserved | N/A |
 {: title="DDB Field Types"}
 
-A DDB MUST include exactly one Service Name field (Type 0x01); all other field types defined in this registry are optional.
+A DDB MUST include exactly one Service Name field (Type 0x01) and exactly one Instance Name field (Type 0x02); all other field types defined in this registry are optional.
 
 ### Service Name (Type 0x01) {#service-name}
 
@@ -234,9 +234,7 @@ Value:
 : A UTF-8 string containing the Instance Name, as defined in {{RFC6763}}, Section 4.1.1 (e.g., "My Color Printer"). It MUST NOT include the Service Name or Domain components.
 
 Constraints:
-: Length constraints follow {{RFC6763}}, Section 4.1.1. A Length of 0 indicates that no specific Instance Name is being advertised (e.g., for general service-name discovery without an instance identifier). The string MUST NOT be null-terminated.
-
-: When the underlying transport already conveys an equivalent human-readable name of its own, senders MAY omit the Instance Name field and rely on that transport-native name instead, to avoid redundant encoding of the same information.
+: Required. Length constraints follow {{RFC6763}}, Section 4.1.1; the Length MUST be at least 1. The string MUST NOT be null-terminated.
 
 Example:
 : The Instance Name "My Color Printer" (16 octets) encodes as:
@@ -257,7 +255,7 @@ Value:
 : TLV extended-length encoding MUST be used if the TXT data exceeds 254 octets; see {{tlv-field-structure}}.
 
 Constraints:
-: The TXT Data field MAY represent an empty TXT record, encoded as a single string-length octet of 0x00 with a TLV Length of 0x01. This is equivalent to the DNS TXT RDATA for an empty record and is a valid encoding. When TXT metadata is present, the field contains one or more length-prefixed strings as described above. If the TXT Data field is omitted entirely, receivers MUST NOT infer any default TXT record content.
+: The TXT Data field MAY represent an empty TXT record, encoded as a single string-length octet of 0x00 with a TLV Length of 0x01. This is equivalent to the DNS TXT RDATA for an empty record and is a valid encoding. When TXT metadata is present, the field contains one or more length-prefixed strings as described above. The length-prefixed strings MUST exactly fill the Value. If the TXT Data field is omitted entirely, receivers MUST NOT infer any default TXT record content, other than a UUID string reconstructed from the UUID field ({{ddb-to-dnssd}}).
 
 Example:
 : TXT strings "txtvers=1" (9 octets), "pdl=image/pwg-raster" (20 octets), and "rp=ipp/print" (12 octets), encoded as:
@@ -278,13 +276,13 @@ Example:
 
 : Total: 3 + 9 + 20 + 12 = 44 octets.
 
-### UUID (Type 0x04)
+### UUID (Type 0x04) {#uuid}
 
 Value:
-: A 128-bit (16-octet) UUID in the binary representation defined in {{RFC9562}}, stored in network byte order. The UUID SHOULD be a UUID that uniquely identifies the specific service instance or the device hosting it. As an example, for an IPP print service, the value would match the value of the "UUID" key in the DNS-SD TXT record (where it is encoded as a hyphenated ASCII UUID string).
+: A 128-bit UUID in the binary representation defined in {{RFC9562}}, in network byte order. This field is a compact encoding of a "UUID" key/value pair in the service's TXT record, for service types whose TXT record conventions define such a key (e.g., IPP Everywhere {{IPPEVE}}). The meaning of the UUID value, and its relationship to other protocols, are defined by the service type and are outside the scope of this specification.
 
 Constraints:
-: Length MUST be exactly 16 (0x10) octets. If a UUID is not available (nil UUID), omit the field rather than encoding all-zeros. (Encoding a nil UUID is valid if the sender intends to signal "UUID explicitly unknown/nil".)
+: Length MUST be exactly 16 (0x10) octets. An encoder MAY use this field in place of a TXT string only if that string's key is exactly "UUID", the value is the 36-character hyphenated form defined in {{RFC9562}} using lowercase hexadecimal digits, and the TXT record contains no other "UUID" key. When this field is used, that string MUST be removed from the TXT Data field. A DDB that contains both this field and a TXT string with the key "UUID" is invalid ({{decoding-rules}}).
 
 Example:
 : The UUID "12345678-1234-5678-1234-567812345678" encodes as:
@@ -309,13 +307,13 @@ Note:
 Note:
 : The Domain field is UTF-8, whereas the Hostname field ({{hostname}}) is ASCII with internationalized labels in A-label form. This difference is deliberate and mirrors DNS-SD practice. {{RFC6763}}, Section 4.1.3 recommends that the \<Domain\> portion of a Service Instance Name be represented as precomposed UTF-8 (Unicode Normalization Form C). An SRV target, by contrast, is a host name used for address resolution and as the TLS Server Name Indication value, which requires A-labels ({{RFC6066}}, Section 3). Encoders MUST encode the Domain exactly as it appears in the Service Instance Name. A receiver that needs the A-label form (e.g., to issue a unicast DNS query) can derive it per {{RFC5891}}.
 
-### Port (Type 0x06)
+### Port (Type 0x06) {#port}
 
 Value:
 : A 2-octet unsigned integer in network byte order containing the TCP or UDP port on which the service listens. This is the same value that would appear in the SRV record for this service instance.
 
 Constraints:
-: Optional. Length MUST be exactly 2 (0x02) octets if present. For services where the port is deterministic from the Service Name (e.g., port 80 for "_http._tcp") this field may be omitted; its primary value is when the device is using a non-standard port.
+: Optional. Length MUST be exactly 2 (0x02) octets if present. If absent, the port is the one assigned to the Service Name in the IANA "Service Name and Transport Protocol Port Number Registry" {{RFC6335}} (e.g., port 631 for "_ipp._tcp"). Encoders MUST include this field if the service listens on any other port, or if the registry assigns no port number to the Service Name. Encoders MAY include this field when it carries the assigned port; doing so is redundant but valid. A receiver that knows of no assigned port for the Service Name MUST treat the port as unknown until DNS-SD can be queried after IP association.
 
 ### Subtype List (Type 0x07)
 
@@ -323,7 +321,7 @@ Value:
 : A sequence of length-prefixed UTF-8 strings, one per DNS-SD subtype that the service instance supports. Each subtype string is the subtype label only (without the "_sub.\<service\>.\<domain\>" suffix), preceded by its 1-octet length. Example: the subtype "_print" (defined by IPP Everywhere {{IPPEVE}}) would be encoded as 0x06 followed by "_print" (6 octets).
 
 Constraints:
-: Optional. Included only when the service advertises one or more DNS-SD subtypes. Each individual subtype label MUST NOT exceed 63 octets.
+: Optional. Included only when the service advertises one or more DNS-SD subtypes. Each individual subtype label MUST NOT exceed 63 octets. The length-prefixed strings MUST exactly fill the Value.
 
 ### Hostname (Type 0x08) {#hostname}
 
@@ -352,7 +350,7 @@ Note:
 
 6. A single TLV field using extended-length encoding may carry a value of at most 65,535 octets, occupying 1 (Type) + 3 (0xFF escape + 2-octet extended length) + 65,535 (Value) = 65,539 octets. No absolute maximum is imposed on the total DDB length; practical transports impose far tighter limits, and implementations SHOULD reject DDBs that exceed the limit imposed by the transport in use.
 
-## Decoding Rules and Forward Compatibility
+## Decoding Rules and Forward Compatibility {#decoding-rules}
 
 1. Read the Version octet. If not 0x01, treat the block as uninterpretable (do not attempt TLV parsing).
 
@@ -362,17 +360,17 @@ Note:
 
     b. If the Type has already been seen in this DDB, stop and discard the DDB as malformed.
 
-    c. Read the Length octet. If Length is 0xFF, read the next two octets as a 16-bit big-endian extended length.
+    c. Read the Length octet. If Length is 0xFF, read the next two octets as a 16-bit big-endian extended length; if that extended length is less than 255, stop and discard the DDB.
 
     d. Read Value octets (count given by the resolved length).
 
-    e. If the Type is known, process according to {{field-type-registry}}.
+    e. If the Type is known, check the Value against the constraints in that field's definition ({{field-type-registry}}). If it violates them (for example, a UUID field whose Length is not 16, a Port field whose Length is not 2, a Hostname containing characters outside the permitted set, or a string field that is not valid UTF-8), stop and discard the DDB. Otherwise, process the field.
 
     f. If the Type is unknown, skip the Value bytes.
 
 3. Continue until all octets of the DDB have been consumed.
 
-4. A DDB parses successfully as long as its octets form well-formed TLV fields (including a DDB consisting of nothing but padding octets after the Version octet). However, a decoded DDB that contains no Service Name field (Type 0x01) is not a conformant DDB per {{field-type-registry}} and MUST be discarded by the receiver. Implementations MUST NOT generate a DDB lacking a Service Name field.
+4. A DDB parses successfully as long as its octets form well-formed TLV fields (including a DDB consisting of nothing but padding octets after the Version octet). However, a decoded DDB that lacks a Service Name field (Type 0x01) or an Instance Name field (Type 0x02) is not a conformant DDB per {{field-type-registry}} and MUST be discarded by the receiver. Implementations MUST NOT generate a DDB lacking either field.
 
 5. A DDB that is truncated (insufficient octets to complete the current TLV) MUST be treated as malformed; already-decoded fields MAY be used at the discretion of the application.
 
@@ -384,24 +382,24 @@ When a content-type identifier is needed, a DDB payload is identified by the MIM
 
 # Relationship to DNS-SD
 
-## Deriving DNS-SD Records from a DDB {#ddb-to-dnssd}
+## Interpreting a DDB as DNS-SD Information {#ddb-to-dnssd}
 
-Given a DDB and an IP address for the device, a client can synthesize the corresponding PTR, SRV, and TXT records using the owner-name conventions of {{RFC6763}}, Section 4.1, with the domain defaulting to "local" if the Domain field is absent:
+The Service Instance Name, formed from the Instance Name, Service Name, and Domain fields per {{RFC6763}}, Section 4.1 (with the domain defaulting to "local" if the Domain field is absent), is the identity anchor of a DDB: it is the RDATA of the PTR record that DNS-SD browsing would return for this service instance. A client can use it to perform Service Instance Resolution ({{RFC6763}}, Section 5), obtaining SRV, TXT, and address records over any network interface on which DNS-SD is reachable.
 
-PTR record:
-: RDATA is the Service Instance Name, built from the Instance Name, Service Name, and domain.
+A DDB can also convey SRV and TXT information directly, so that the client can use it without performing resolution:
 
-SRV record:
-: RDATA is \<priority\> \<weight\> \<port\> \<hostname\>, using the Port field and, if present, the Hostname field (Type 0x08) as the target. If Hostname is absent, the SRV target is not known until DNS-SD is queried after IP association. A DDB does not encode SRV priority or weight; a client MUST synthesize both as 0, as {{RFC6763}}, Section 5 specifies for the common case of a service instance described by a single SRV record.
+SRV information:
+: The Port field (or, if absent, the registry-assigned port; see {{port}}) and the Hostname field correspond to the SRV port and target. If Hostname is absent, the SRV target is not known until DNS-SD is queried after IP association. Priority and weight are not conveyed and are treated as 0, as {{RFC6763}}, Section 5 specifies for the common case of a service instance described by a single SRV record.
 
-TXT record:
-: RDATA is the TXT Data field verbatim.
+TXT information:
+: The TXT Data field is the TXT RDATA verbatim. If the UUID field is present, the client MUST reconstruct the TXT string "UUID=" followed by the 36-character lowercase hyphenated form of the UUID, and append it to the end of the TXT record. If the TXT Data field is absent, the reconstructed TXT record consists of that single string.
 
-If the UUID field is present but the TXT Data field does not already contain a "UUID=..." key=value pair, a client SHOULD synthesize the UUID TXT record key from the binary UUID (formatted as a lowercase hyphen-separated hex string) and add it to the reconstructed TXT record.
+Subtypes:
+: Each label in the Subtype List field corresponds to a subtype PTR record, owned by \<subtype\>._sub.\<Service Name\>.\<domain\>, that references the Service Instance Name ({{RFC6763}}, Section 7.1).
 
 ## Constructing a DDB from DNS-SD Records
 
-To serialize DNS-SD records into a DDB: set Version = 0x01; extract the Service Name and Instance Name from the PTR and Service Instance Name; copy the TXT record RDATA verbatim into TXT Data (extracting a "UUID" key into the UUID field, if present); copy Port from the SRV record; copy the SRV target hostname into Hostname (Type 0x08) if pre-connection hostname knowledge is needed; and omit Domain if it is "local".
+To serialize DNS-SD records into a DDB: set Version = 0x01; extract the Service Name and Instance Name from the PTR and Service Instance Name; copy the TXT record RDATA into TXT Data, optionally moving a "UUID" key/value pair into the UUID field as specified in {{uuid}}; copy Port from the SRV record (it MAY be omitted if it equals the port assigned to the Service Name; see {{port}}); copy the SRV target hostname into Hostname (Type 0x08) if pre-connection hostname knowledge is needed; copy the subtype labels of any subtype PTR records that reference the Service Instance Name into the Subtype List field; and omit Domain if it is "local".
 
 A DDB represents a single SRV record. Because SRV priority and weight affect client behavior only when multiple SRV records exist for the same Service Instance Name, they are not encoded.
 
@@ -413,16 +411,19 @@ The Domain field SHOULD be omitted when the domain is "local", and MUST be inclu
 
 ## Minimal Printer Service DDB
 
-This DDB conveys only the Service Name, sufficient for a "this device provides IPP printing" beacon:
+This DDB conveys only the required fields, the Service Name and the Instance Name:
 
 ~~~
 01                      ; Version = 1
 01 09                   ; Type=Service Name, Length=9
 5F 69 70 70 2E 5F 74 63 ;
 70                      ; "_ipp._tcp"
+02 10                   ; Type=Instance Name, Length=16
+4D 79 20 43 6F 6C 6F 72 ;
+20 50 72 69 6E 74 65 72 ; "My Color Printer"
 ~~~
 
-Total: 12 octets.
+Total: 1 + (2+9) + (2+16) = 30 octets.
 
 ## Full Printer Service DDB with TXT and UUID
 
@@ -457,10 +458,12 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 89 9A AB BC CD DE EF F0 ; UUID bytes
 
 06 02                   ; Type=Port, Length=2
-02 77                   ; port 631 (0x0277)
+21 B7                   ; port 8631 (0x21B7)
 ~~~
 
 Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.
+
+The Port field is included because this printer listens on 8631 rather than port 631, which is assigned to "_ipp._tcp"; see {{port}}.
 
 # Design Notes and Alternatives Considered
 
@@ -556,9 +559,9 @@ Any device within range of the carrying transport can transmit a DDB claiming an
 
 ## Privacy: Persistent Identifiers
 
-The UUID field, if reused across proximity events, constitutes a stable identifier that can be used to track a device's location or owner. Devices SHOULD use randomized UUIDs for DDBs carried in broadcast advertising if the service UUID is not already stable (e.g., print services that expose a stable mDNS UUID publicly may choose to accept this). This mirrors similar address- and identifier-randomization considerations found in other short-range broadcast technologies: a persistent service identifier in an advertisement creates the same tracking surface as a persistent link-layer address.
+The UUID field carries the same value as the TXT "UUID" key it encodes, which for many service types is a stable identifier. When carried in broadcast advertising, it can be used to track a device or its owner across locations and over time. Senders concerned about tracking SHOULD omit both the UUID field and the TXT "UUID" key from broadcast DDBs, or use a value that the service type permits to be rotated.
 
-The Instance Name often contains human-readable device names (e.g., "Jane's MacBook Printer") which are personally identifying. Devices SHOULD allow users to customize or omit Instance Names in proximity advertisements.
+The Instance Name often contains human-readable device names (e.g., "Jane's MacBook Printer") which are personally identifying. Devices SHOULD allow users to customize the Instance Name used in proximity advertisements.
 
 ## Denial of Service
 
