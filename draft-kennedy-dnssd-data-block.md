@@ -139,6 +139,9 @@ Service Instance Name:
 Instance Name:
 : The \<Instance\> component of a Service Instance Name, as defined in {{RFC6763}}, Section 4.1.1.
 
+Inherited Instance Name:
+: An Instance Name encoded with a Length of 0, whose value is a name conveyed by the carrying technology ({{instance-name}}).
+
 TXT Data:
 : The DNS-SD TXT record payload, encoded as a sequence of length-prefixed strings, each string being a UTF-8 key=value pair or a bare key, as specified in {{RFC6763}}, Section 6.
 
@@ -255,7 +258,7 @@ Value:
 : A UTF-8 string containing the Instance Name, as defined in {{RFC6763}}, Section 4.1.1 (e.g., "My Color Printer"). It MUST NOT include the Service Name or Domain components.
 
 Constraints:
-: Required. Length constraints follow {{RFC6763}}, Section 4.1.1; the Length MUST be at least 1. The string MUST NOT be null-terminated.
+: Required. Length constraints follow {{RFC6763}}, Section 4.1.1. The string MUST NOT be null-terminated. The Length MUST be at least 1, except as follows. A Length of 0 encodes an Inherited Instance Name: it indicates that the Instance Name is identical to a name conveyed by the carrying technology, as identified by that technology's specification for use with DDB (for example, a device name carried in the same advertisement). An encoder MUST NOT use a Length of 0 unless the carrying technology identifies such a name and that name is octet-for-octet identical to the Instance Name. A receiver that does not have the referenced name (for example, because the carrying technology identifies none, or it was not received) MUST treat the DDB as lacking an Instance Name ({{decoding-rules}}).
 
 Example:
 : The Instance Name "My Color Printer" (16 octets) encodes as:
@@ -264,6 +267,14 @@ Example:
 02 10                   ; Type=Instance Name, Length=16
 4D 79 20 43 6F 6C 6F 72 ;
 20 50 72 69 6E 74 65 72 ; "My Color Printer"
+~~~
+
+Example:
+: If the carrying technology conveys the device name "My Color Printer" and identifies it for use with DDB, the Instance Name can instead be encoded as an Inherited Instance Name:
+
+~~~
+02 00                   ; Type=Instance Name, Length=0
+                        ; (name conveyed by the carrying technology)
 ~~~
 
 ### TXT Data (Type 0x03)
@@ -431,7 +442,7 @@ Note:
 
 3. Continue until all octets of the DDB have been consumed.
 
-4. A DDB parses successfully as long as its octets form well-formed TLV fields (including a DDB consisting of nothing but padding octets after the Version octet). However, a decoded DDB that lacks a Service Name field (Type 0x01) or an Instance Name field (Type 0x02) is not a conformant DDB per {{field-type-registry}} and MUST be discarded by the receiver. Implementations MUST NOT generate a DDB lacking either field.
+4. A DDB parses successfully as long as its octets form well-formed TLV fields (including a DDB consisting of nothing but padding octets after the Version octet). However, a decoded DDB that lacks a Service Name field (Type 0x01) or an Instance Name field (Type 0x02), counting an Inherited Instance Name whose referenced name is unavailable as lacking ({{instance-name}}), is not a conformant DDB per {{field-type-registry}} and MUST be discarded by the receiver. Implementations MUST NOT generate a DDB lacking either field.
 
 5. A DDB that is truncated (insufficient octets to complete the current TLV) MUST be treated as malformed; already-decoded fields MAY be used at the discretion of the application.
 
@@ -445,7 +456,7 @@ When a content-type identifier is needed, a DDB payload is identified by the med
 
 ## Interpreting a DDB as DNS-SD Information {#ddb-to-dnssd}
 
-The Service Instance Name, formed from the Instance Name, Service Name, and Domain fields per {{RFC6763}}, Section 4.1 (with the domain defaulting to "local" if the Domain field is absent), is the identity anchor of a DDB: it is the RDATA of the PTR record that DNS-SD browsing would return for this service instance. A client can use it to perform Service Instance Resolution ({{RFC6763}}, Section 5), obtaining SRV, TXT, and address records over any network interface on which DNS-SD is reachable.
+The Service Instance Name, formed from the Instance Name (or, for an Inherited Instance Name, the name it references; see {{instance-name}}), Service Name, and Domain fields per {{RFC6763}}, Section 4.1 (with the domain defaulting to "local" if the Domain field is absent), is the identity anchor of a DDB: it is the RDATA of the PTR record that DNS-SD browsing would return for this service instance. A client can use it to perform Service Instance Resolution ({{RFC6763}}, Section 5), obtaining SRV, TXT, and address records over any network interface on which DNS-SD is reachable.
 
 A DDB can also convey SRV and TXT information directly, so that the client can use it without performing resolution:
 
@@ -481,6 +492,21 @@ This DDB conveys only the required fields, the Service Name and the Instance Nam
 ~~~
 
 Total: 1 + (2+9) + (2+16) = 30 octets.
+
+## Minimal Printer Service DDB with Inherited Instance Name
+
+The same printer as in the previous example, where the carrying technology conveys the device name "My Color Printer" and identifies it for use with DDB, so the Instance Name is encoded as an Inherited Instance Name ({{instance-name}}):
+
+~~~
+01                      ; Version = 1
+01 09                   ; Type=Service Name, Length=9
+5F 69 70 70 2E 5F 74 63 ;
+70                      ; "_ipp._tcp"
+02 00                   ; Type=Instance Name, Length=0
+                        ; (name conveyed by the carrying technology)
+~~~
+
+Total: 1 + (2+9) + (2+0) = 14 octets.
 
 ## Full Printer Service DDB with TXT and UUID
 
@@ -667,7 +693,7 @@ This appendix is informative. It describes the two contexts in which DDBs are ty
 
 In this context, a DDB advertises a service that a client can reach after establishing a direct link with the advertising device, such as a peer-to-peer Wi-Fi connection set up following an NFC tap or a Bluetooth Low Energy advertisement. Once that link exists, the client and the service share a network on which DNS-SD operates, typically via mDNS. The DDB lets the client decide, before connecting, whether the device offers a service it wants.
 
-Because the client can perform Service Instance Resolution once the link is established, the required fields (Service Name and Instance Name) are sufficient to reach the service, and TXT Data is useful for selection before connecting. The Hostname field is not needed to reach the service in this context, although it remains useful for TLS validation (see {{hostname}}). How the direct link itself is established is defined by the carrying technology (e.g., connection handover information accompanying the DDB), not by this document.
+Because the client can perform Service Instance Resolution once the link is established, the required fields (Service Name and Instance Name) are sufficient to reach the service, and TXT Data is useful for selection before connecting. The Hostname field is not needed to reach the service in this context, although it remains useful for TLS validation (see {{hostname}}). Where the carrying technology already conveys the device's name and that name is identical to the Instance Name, the sender can encode it as an Inherited Instance Name to avoid repeating it ({{instance-name}}). How the direct link itself is established is defined by the carrying technology (e.g., connection handover information accompanying the DDB), not by this document.
 
 ## LAN Connection Opportunities
 
