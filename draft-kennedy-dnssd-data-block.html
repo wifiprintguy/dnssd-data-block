@@ -1218,7 +1218,10 @@ svg {
                 <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-minimal-printer-service-ddb" class="internal xref">Minimal Printer Service DDB</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
-                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-full-printer-service-ddb-wi" class="internal xref">Full Printer Service DDB with TXT and UUID</a></p>
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-minimal-printer-service-ddb-" class="internal xref">Minimal Printer Service DDB with Inherited Instance Name</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-full-printer-service-ddb-wi" class="internal xref">Full Printer Service DDB with TXT and UUID</a></p>
 </li>
             </ul>
 </li>
@@ -1375,19 +1378,24 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <p id="section-2-3.8.1">The &lt;Instance&gt; component of a Service Instance Name, as defined in <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 4.1.1.<a href="#section-2-3.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-3.9">TXT Data:</dt>
+<dt id="section-2-3.9">Inherited Instance Name:</dt>
         <dd style="margin-left: 1.5em" id="section-2-3.10">
-          <p id="section-2-3.10.1">The DNS-SD TXT record payload, encoded as a sequence of length-prefixed strings, each string being a UTF-8 key=value pair or a bare key, as specified in <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 6.<a href="#section-2-3.10.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.10.1">An Instance Name encoded with a Length of 0, whose value is a name conveyed by the carrying technology (<a href="#instance-name" class="auto internal xref">Section 3.4.2</a>).<a href="#section-2-3.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-3.11">UUID:</dt>
+<dt id="section-2-3.11">TXT Data:</dt>
         <dd style="margin-left: 1.5em" id="section-2-3.12">
-          <p id="section-2-3.12.1">A Universally Unique Identifier as defined in <span>[<a href="#RFC9562" class="cite xref">RFC9562</a>]</span> (formerly <span>[<a href="#RFC4122" class="cite xref">RFC4122</a>]</span>), encoded as 16 octets in network byte order following the binary representation defined therein.<a href="#section-2-3.12.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.12.1">The DNS-SD TXT record payload, encoded as a sequence of length-prefixed strings, each string being a UTF-8 key=value pair or a bare key, as specified in <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 6.<a href="#section-2-3.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-3.13">TLV:</dt>
+<dt id="section-2-3.13">UUID:</dt>
         <dd style="margin-left: 1.5em" id="section-2-3.14">
-          <p id="section-2-3.14.1">Type-Length-Value - a binary encoding scheme consisting of a type code field indicating the type, a length field indicating the length of the value field, and a value field containing the actual payload. The type and length fields are typically of fixed size.<a href="#section-2-3.14.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.14.1">A Universally Unique Identifier as defined in <span>[<a href="#RFC9562" class="cite xref">RFC9562</a>]</span> (formerly <span>[<a href="#RFC4122" class="cite xref">RFC4122</a>]</span>), encoded as 16 octets in network byte order following the binary representation defined therein.<a href="#section-2-3.14.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.15">TLV:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.16">
+          <p id="section-2-3.16.1">Type-Length-Value - a binary encoding scheme consisting of a type code field indicating the type, a length field indicating the length of the value field, and a value field containing the actual payload. The type and length fields are typically of fixed size.<a href="#section-2-3.16.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1624,7 +1632,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <dd class="break"></dd>
 <dt id="section-3.4.2-1.3">Constraints:</dt>
             <dd style="margin-left: 1.5em" id="section-3.4.2-1.4">
-              <p id="section-3.4.2-1.4.1">Required. Length constraints follow <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 4.1.1; the Length <span class="bcp14">MUST</span> be at least 1. The string <span class="bcp14">MUST NOT</span> be null-terminated.<a href="#section-3.4.2-1.4.1" class="pilcrow">¶</a></p>
+              <p id="section-3.4.2-1.4.1">Required. Length constraints follow <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 4.1.1. The string <span class="bcp14">MUST NOT</span> be null-terminated. The Length <span class="bcp14">MUST</span> be at least 1, except as follows. A Length of 0 encodes an Inherited Instance Name: it indicates that the Instance Name is identical to a name conveyed by the carrying technology, as identified by that technology's specification for use with DDB (for example, a device name carried in the same advertisement). An encoder <span class="bcp14">MUST NOT</span> use a Length of 0 unless the carrying technology identifies such a name and that name is octet-for-octet identical to the Instance Name. A receiver that does not have the referenced name (for example, because the carrying technology identifies none, or it was not received) <span class="bcp14">MUST</span> treat the DDB as lacking an Instance Name (<a href="#decoding-rules" class="auto internal xref">Section 3.6</a>).<a href="#section-3.4.2-1.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.4.2-1.5">Example:</dt>
@@ -1639,6 +1647,19 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 4D 79 20 43 6F 6C 6F 72 ;
 20 50 72 69 6E 74 65 72 ; "My Color Printer"
 </pre><a href="#section-3.4.2-2" class="pilcrow">¶</a>
+</div>
+<span class="break"></span><dl class="dlParallel" id="section-3.4.2-3">
+            <dt id="section-3.4.2-3.1">Example:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.4.2-3.2">
+              <p id="section-3.4.2-3.2.1">If the carrying technology conveys the device name "My Color Printer" and identifies it for use with DDB, the Instance Name can instead be encoded as an Inherited Instance Name:<a href="#section-3.4.2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<div class="alignLeft art-text artwork" id="section-3.4.2-4">
+<pre>
+02 00                   ; Type=Instance Name, Length=0
+                        ; (name conveyed by the carrying technology)
+</pre><a href="#section-3.4.2-4" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -1931,7 +1952,7 @@ f. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.7" cla
             <p id="section-3.6-1.3.1">Continue until all octets of the DDB have been consumed.<a href="#section-3.6-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.6-1.4">
-            <p id="section-3.6-1.4.1">A DDB parses successfully as long as its octets form well-formed TLV fields (including a DDB consisting of nothing but padding octets after the Version octet). However, a decoded DDB that lacks a Service Name field (Type 0x01) or an Instance Name field (Type 0x02) is not a conformant DDB per <a href="#field-type-registry" class="auto internal xref">Section 3.4</a> and <span class="bcp14">MUST</span> be discarded by the receiver. Implementations <span class="bcp14">MUST NOT</span> generate a DDB lacking either field.<a href="#section-3.6-1.4.1" class="pilcrow">¶</a></p>
+            <p id="section-3.6-1.4.1">A DDB parses successfully as long as its octets form well-formed TLV fields (including a DDB consisting of nothing but padding octets after the Version octet). However, a decoded DDB that lacks a Service Name field (Type 0x01) or an Instance Name field (Type 0x02), counting an Inherited Instance Name whose referenced name is unavailable as lacking (<a href="#instance-name" class="auto internal xref">Section 3.4.2</a>), is not a conformant DDB per <a href="#field-type-registry" class="auto internal xref">Section 3.4</a> and <span class="bcp14">MUST</span> be discarded by the receiver. Implementations <span class="bcp14">MUST NOT</span> generate a DDB lacking either field.<a href="#section-3.6-1.4.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.6-1.5">
             <p id="section-3.6-1.5.1">A DDB that is truncated (insufficient octets to complete the current TLV) <span class="bcp14">MUST</span> be treated as malformed; already-decoded fields <span class="bcp14">MAY</span> be used at the discretion of the application.<a href="#section-3.6-1.5.1" class="pilcrow">¶</a></p>
@@ -1960,7 +1981,7 @@ f. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.7" cla
         <h3 id="name-interpreting-a-ddb-as-dns-s">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-interpreting-a-ddb-as-dns-s" class="section-name selfRef">Interpreting a DDB as DNS-SD Information</a>
         </h3>
-<p id="section-4.1-1">The Service Instance Name, formed from the Instance Name, Service Name, and Domain fields per <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 4.1 (with the domain defaulting to "local" if the Domain field is absent), is the identity anchor of a DDB: it is the RDATA of the PTR record that DNS-SD browsing would return for this service instance. A client can use it to perform Service Instance Resolution (<span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 5), obtaining SRV, TXT, and address records over any network interface on which DNS-SD is reachable.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-1">The Service Instance Name, formed from the Instance Name (or, for an Inherited Instance Name, the name it references; see <a href="#instance-name" class="auto internal xref">Section 3.4.2</a>), Service Name, and Domain fields per <span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 4.1 (with the domain defaulting to "local" if the Domain field is absent), is the identity anchor of a DDB: it is the RDATA of the PTR record that DNS-SD browsing would return for this service instance. A client can use it to perform Service Instance Resolution (<span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 5), obtaining SRV, TXT, and address records over any network interface on which DNS-SD is reachable.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.1-2">A DDB can also convey SRV and TXT information directly, so that the client can use it without performing resolution:<a href="#section-4.1-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-4.1-3">
           <dt id="section-4.1-3.1">SRV information:</dt>
@@ -2017,13 +2038,32 @@ f. If the Type is unknown, skip the Value bytes.<a href="#section-3.6-1.2.7" cla
 <p id="section-5.1-3">Total: 1 + (2+9) + (2+16) = 30 octets.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="full-printer-service-ddb-with-txt-and-uuid">
+<div id="minimal-printer-service-ddb-with-inherited-instance-name">
 <section id="section-5.2">
-        <h3 id="name-full-printer-service-ddb-wi">
-<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-full-printer-service-ddb-wi" class="section-name selfRef">Full Printer Service DDB with TXT and UUID</a>
+        <h3 id="name-minimal-printer-service-ddb-">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-minimal-printer-service-ddb-" class="section-name selfRef">Minimal Printer Service DDB with Inherited Instance Name</a>
         </h3>
-<p id="section-5.2-1">A more complete DDB for an IPP printer named "Conference Room Printer" (23 UTF-8 octets):<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-1">The same printer as in the previous example, where the carrying technology conveys the device name "My Color Printer" and identifies it for use with DDB, so the Instance Name is encoded as an Inherited Instance Name (<a href="#instance-name" class="auto internal xref">Section 3.4.2</a>):<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.2-2">
+<pre>
+01                      ; Version = 1
+01 09                   ; Type=Service Name, Length=9
+5F 69 70 70 2E 5F 74 63 ;
+70                      ; "_ipp._tcp"
+02 00                   ; Type=Instance Name, Length=0
+                        ; (name conveyed by the carrying technology)
+</pre><a href="#section-5.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-3">Total: 1 + (2+9) + (2+0) = 14 octets.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="full-printer-service-ddb-with-txt-and-uuid">
+<section id="section-5.3">
+        <h3 id="name-full-printer-service-ddb-wi">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-full-printer-service-ddb-wi" class="section-name selfRef">Full Printer Service DDB with TXT and UUID</a>
+        </h3>
+<p id="section-5.3-1">A more complete DDB for an IPP printer named "Conference Room Printer" (23 UTF-8 octets):<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3-2">
 <pre>
 01                      ; Version = 1
 
@@ -2059,10 +2099,10 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 70 72 69 6E 74 65 72 2E ;
 63 6F 72 70 2E 65 78 61 ;
 6D 70 6C 65 2E 63 6F 6D ; "printer.corp.example.com"
-</pre><a href="#section-5.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-5.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5.2-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) + (2+24) = 131 octets.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
-<p id="section-5.2-4">The Port field is included because this printer listens on 8631 rather than port 631, which is assigned to "_ipp._tcp"; see <a href="#port" class="auto internal xref">Section 3.4.6</a>.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) + (2+24) = 131 octets.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">The Port field is included because this printer listens on 8631 rather than port 631, which is assigned to "_ipp._tcp"; see <a href="#port" class="auto internal xref">Section 3.4.6</a>.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2485,7 +2525,7 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 <a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-peer-to-peer-connection-opp" class="section-name selfRef">Peer-to-Peer Connection Opportunities</a>
         </h3>
 <p id="appendix-A.1-1">In this context, a DDB advertises a service that a client can reach after establishing a direct link with the advertising device, such as a peer-to-peer Wi-Fi connection set up following an NFC tap or a Bluetooth Low Energy advertisement. Once that link exists, the client and the service share a network on which DNS-SD operates, typically via mDNS. The DDB lets the client decide, before connecting, whether the device offers a service it wants.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-2">Because the client can perform Service Instance Resolution once the link is established, the required fields (Service Name and Instance Name) are sufficient to reach the service, and TXT Data is useful for selection before connecting. The Hostname field is not needed to reach the service in this context, although it remains useful for TLS validation (see <a href="#hostname" class="auto internal xref">Section 3.4.8</a>). How the direct link itself is established is defined by the carrying technology (e.g., connection handover information accompanying the DDB), not by this document.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-2">Because the client can perform Service Instance Resolution once the link is established, the required fields (Service Name and Instance Name) are sufficient to reach the service, and TXT Data is useful for selection before connecting. The Hostname field is not needed to reach the service in this context, although it remains useful for TLS validation (see <a href="#hostname" class="auto internal xref">Section 3.4.8</a>). Where the carrying technology already conveys the device's name and that name is identical to the Instance Name, the sender can encode it as an Inherited Instance Name to avoid repeating it (<a href="#instance-name" class="auto internal xref">Section 3.4.2</a>). How the direct link itself is established is defined by the carrying technology (e.g., connection handover information accompanying the DDB), not by this document.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="lan-connection-opportunities">
