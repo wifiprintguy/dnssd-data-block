@@ -25,11 +25,10 @@ author:
     email: smitty.standards@gmail.com
 
 normative:
-  RFC1035:
   RFC3629:
-  RFC5890:
   RFC5891:
   RFC6335:
+  RFC6762:
   RFC6763:
   RFC8126:
   RFC9562:
@@ -38,7 +37,6 @@ informative:
   RFC2782:
   RFC4122:
   RFC6066:
-  RFC6762:
   RFC6838:
   RFC7558:
   RFC8259:
@@ -318,7 +316,7 @@ Note:
 : In the vast majority of short-range proximity scenarios, the domain is "local" and this field can be omitted to save space.
 
 Note:
-: The Domain field is UTF-8, whereas the Hostname field ({{hostname}}) is ASCII with internationalized labels in A-label form. This difference is deliberate and mirrors DNS-SD practice. {{RFC6763}}, Section 4.1.3 recommends that the \<Domain\> portion of a Service Instance Name be represented as precomposed UTF-8 (Unicode Normalization Form C). An SRV target, by contrast, is a host name used for address resolution and as the TLS Server Name Indication value, which requires A-labels ({{RFC6066}}, Section 3). Encoders MUST encode the Domain exactly as it appears in the Service Instance Name. A receiver that needs the A-label form (e.g., to issue a unicast DNS query) can derive it per {{RFC5891}}.
+: Both the Domain and Hostname ({{hostname}}) fields MUST be encoded exactly as they appear in the corresponding DNS-SD records; see {{RFC6763}}, Section 4.1.3 and {{RFC6762}}, Section 16. A receiver that needs A-label forms (e.g., for a unicast DNS query or TLS SNI) derives them per {{RFC5891}}.
 
 ### Port (Type 0x06) {#port}
 
@@ -339,9 +337,9 @@ Constraints:
 ### Hostname (Type 0x08) {#hostname}
 
 Value:
-: An ASCII string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "device-abc.example.com".
+: A UTF-8 string containing the fully qualified DNS hostname of the host providing the service, as it would appear in the RDATA of a DNS SRV record (target field). The hostname is the DNS name to which A or AAAA records are registered, and is the name used for TLS Server Name Indication (SNI) when connecting to the service. For example: "device-abc.example.com".
 
-: The string is encoded in ASCII (not UTF-8) and MUST consist only of DNS label characters (letters, digits, hyphens) and period separators, per the preferred name syntax of {{RFC1035}}, Section 2.3.1. Internationalized labels MUST be encoded as A-labels ({{RFC5890}}). The string MUST NOT include a trailing dot and MUST NOT be null-terminated.
+: The string is encoded exactly as it appears in the SRV target: precomposed UTF-8 for Multicast DNS ({{RFC6762}}, Section 16), or as registered in Unicast DNS. It MUST NOT include a trailing dot and MUST NOT be null-terminated. A client that uses the hostname for TLS Server Name Indication converts any non-ASCII labels to A-labels ({{RFC5891}}), as {{RFC6066}}, Section 3 requires.
 
 Constraints:
 : Optional. Length MUST be between 1 and 253 octets, consistent with the maximum length of a fully qualified domain name. If absent, the client MUST obtain the SRV target hostname via DNS-SD once an IP connection is established. Including this field is RECOMMENDED when the hostname is needed for TLS SNI certificate validation prior to IP-level name resolution.
@@ -359,7 +357,7 @@ Note:
 
 4. Omit any optional field that has no value to convey, to minimize encoded size.
 
-5. All string values are UTF-8 encoded ({{RFC3629}}) and MUST NOT be null-terminated, except the Hostname field ({{hostname}}), which is restricted to ASCII as specified in its own field definition. String lengths in TLV Length fields count octets, not characters.
+5. All string values are UTF-8 encoded ({{RFC3629}}) and MUST NOT be null-terminated. String lengths in TLV Length fields count octets, not characters.
 
 6. A single TLV field using extended-length encoding may carry a value of at most 65,535 octets, occupying 1 (Type) + 3 (0xFF escape + 2-octet extended length) + 65,535 (Value) = 65,539 octets. No absolute maximum is imposed on the total DDB length; practical transports impose far tighter limits, and implementations SHOULD reject DDBs that exceed the limit imposed by the transport in use.
 
@@ -377,7 +375,7 @@ Note:
 
     d. Read Value octets (count given by the resolved length).
 
-    e. If the Type is known, check the Value against the constraints in that field's definition ({{field-type-registry}}). If it violates them (for example, a UUID field whose Length is not 16, a Port field whose Length is not 2, a Hostname containing characters outside the permitted set, or a string field that is not valid UTF-8), stop and discard the DDB. Otherwise, process the field.
+    e. If the Type is known, check the Value against the constraints in that field's definition ({{field-type-registry}}). If it violates them (for example, a UUID field whose Length is not 16, a Port field whose Length is not 2, a Hostname longer than 253 octets, or a string field that is not valid UTF-8), stop and discard the DDB. Otherwise, process the field.
 
     f. If the Type is unknown, skip the Value bytes.
 
