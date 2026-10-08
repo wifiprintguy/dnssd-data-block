@@ -478,6 +478,12 @@ Table of Contents
       Area DNS-SD per [RFC6763], Section 11).  Length 1 through 253
       octets.
 
+   Example:  The Domain "example.com" (11 octets) encodes as:
+
+   05 0B                   ; Type=Domain, Length=11
+   65 78 61 6D 70 6C 65 2E ;
+   63 6F 6D                ; "example.com"
+
    Note:  In the vast majority of short-range proximity scenarios, the
       domain is "local" and this field can be omitted to save space.
 
@@ -497,13 +503,21 @@ Table of Contents
    Constraints:  Optional.  Length MUST be exactly 2 (0x02) octets if
       present.  If absent, the port is the one assigned to the Service
       Name in the IANA "Service Name and Transport Protocol Port Number
-      Registry" [RFC6335] (e.g., port 631 for "_ipp._tcp").  Encoders
-      MUST include this field if the service listens on any other port,
-      or if the registry assigns no port number to the Service Name.
-      Encoders MAY include this field when it carries the assigned port;
-      doing so is redundant but valid.  A receiver that knows of no
-      assigned port for the Service Name MUST treat the port as unknown
-      until DNS-SD can be queried after IP association.
+      Registry" [IANA.service-names-port-numbers], established by
+      [RFC6335] (e.g., port 631 for "_ipp._tcp").  Encoders MUST include
+      this field if the service listens on any other port, or if the
+      registry assigns no port number to the Service Name.  Encoders MAY
+      include this field when it carries the assigned port; doing so is
+      redundant but valid.  A receiver that knows of no assigned port
+      for the Service Name MUST treat the port as unknown until DNS-SD
+      can be queried after IP association.
+
+   Example:  Port 443 (0x01BB) encodes as follows.  Because 443 is the
+      port assigned to "_https._tcp", an encoder can omit this field for
+      that Service Name.
+
+   06 02                   ; Type=Port, Length=2
+   01 BB                   ; port 443 (0x01BB)
 
 3.4.7.  Subtype List (Type 0x07)
 
@@ -518,6 +532,18 @@ Table of Contents
       one or more DNS-SD subtypes.  Each individual subtype label MUST
       NOT exceed 63 octets.  The length-prefixed strings MUST exactly
       fill the Value.
+
+   Example:  The subtypes "_sub1" and "_sub2" (5 octets each) encode as
+      a single Subtype List field, each label preceded by its own
+      1-octet length:
+
+   07 0C                   ; Type=Subtype List, Length=12
+   05                      ; string length 5
+   5F 73 75 62 31          ; "_sub1"
+   05                      ; string length 5
+   5F 73 75 62 32          ; "_sub2"
+
+   : Total Value: (1+5) + (1+5) = 12 octets.
 
 3.4.8.  Hostname (Type 0x08)
 
@@ -541,6 +567,14 @@ Table of Contents
       via DNS-SD once an IP connection is established.  Including this
       field is RECOMMENDED when the hostname is needed for TLS SNI
       certificate validation prior to IP-level name resolution.
+
+   Example:  The Hostname "device-abc.example.com" (22 octets) encodes
+      as:
+
+   08 16                   ; Type=Hostname, Length=22
+   64 65 76 69 63 65 2D 61 ;
+   62 63 2E 65 78 61 6D 70 ;
+   6C 65 2E 63 6F 6D       ; "device-abc.example.com"
 
    Note:  This field carries the SRV record target hostname only.  IP
       address resolution still requires DNS-SD or mDNS once an IP
@@ -673,9 +707,12 @@ Table of Contents
    Section 3.4.4; copy Port from the SRV record (it MAY be omitted if it
    equals the port assigned to the Service Name; see Section 3.4.6);
    copy the SRV target hostname into Hostname (Type 0x08) if pre-
-   connection hostname knowledge is needed; copy the subtype labels of
-   any subtype PTR records that reference the Service Instance Name into
-   the Subtype List field; and omit Domain if it is "local".
+   connection hostname knowledge is needed; copy into the Subtype List
+   field the labels of the subtypes under which the service instance is
+   registered (an encoder that is not the service's own advertiser can
+   include only subtypes it has observed, since DNS-SD provides no query
+   that enumerates an instance's subtypes); and omit Domain if it is
+   "local".
 
    A DDB represents a single SRV record.  Because SRV priority and
    weight affect client behavior only when multiple SRV records exist
@@ -1026,6 +1063,11 @@ Table of Contents
 9.  References
 
 9.1.  Normative References
+
+   [IANA.service-names-port-numbers]
+              IANA, "Service Name and Transport Protocol Port Number
+              Registry", <https://www.iana.org/assignments/service-
+              names-port-numbers>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
