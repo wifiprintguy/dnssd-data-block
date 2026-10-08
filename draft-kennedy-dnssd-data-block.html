@@ -1291,10 +1291,21 @@ svg {
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-deployment-contexts" class="internal xref">Deployment Contexts</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-peer-to-peer-connection-opp" class="internal xref">Peer-to-Peer Connection Opportunities</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-lan-connection-opportunitie" class="internal xref">LAN Connection Opportunities</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1549,7 +1560,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x08</td>
               <td class="text-left" rowspan="1" colspan="1">Hostname</td>
-              <td class="text-left" rowspan="1" colspan="1">Optional</td>
+              <td class="text-left" rowspan="1" colspan="1">Recommended</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x09-0xEF</td>
@@ -1568,7 +1579,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             </tr>
           </tbody>
         </table>
-<p id="section-3.4-3">A DDB <span class="bcp14">MUST</span> include exactly one Service Name field (Type 0x01) and exactly one Instance Name field (Type 0x02); all other field types defined in this registry are optional.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.4-3">A DDB <span class="bcp14">MUST</span> include exactly one Service Name field (Type 0x01) and exactly one Instance Name field (Type 0x02), and <span class="bcp14">SHOULD</span> include a Hostname field (Type 0x08); all other field types defined in this registry are optional. <a href="#deployment-contexts" class="auto internal xref">Appendix A</a> describes when the recommended and optional fields are needed for a DDB to be useful.<a href="#section-3.4-3" class="pilcrow">¶</a></p>
 <div id="service-name">
 <section id="section-3.4.1">
           <h4 id="name-service-name-type-0x01">
@@ -1837,7 +1848,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <dd class="break"></dd>
 <dt id="section-3.4.8-1.5">Constraints:</dt>
             <dd style="margin-left: 1.5em" id="section-3.4.8-1.6">
-              <p id="section-3.4.8-1.6.1">Optional. Length <span class="bcp14">MUST</span> be between 1 and 253 octets, consistent with the maximum length of a fully qualified domain name. If absent, the client <span class="bcp14">MUST</span> obtain the SRV target hostname via DNS-SD once an IP connection is established. Including this field is <span class="bcp14">RECOMMENDED</span> when the hostname is needed for TLS SNI certificate validation prior to IP-level name resolution.<a href="#section-3.4.8-1.6.1" class="pilcrow">¶</a></p>
+              <p id="section-3.4.8-1.6.1">Recommended; encoders <span class="bcp14">SHOULD</span> include this field. It is needed to reach the service where the client cannot perform DNS-SD resolution after receiving the DDB (<a href="#deployment-contexts" class="auto internal xref">Appendix A</a>), and for TLS SNI certificate validation prior to IP-level name resolution. Length <span class="bcp14">MUST</span> be between 1 and 253 octets, consistent with the maximum length of a fully qualified domain name. If absent, the client <span class="bcp14">MUST</span> obtain the SRV target hostname via DNS-SD once an IP connection is established.<a href="#section-3.4.8-1.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.4.8-1.7">Example:</dt>
@@ -2043,9 +2054,14 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 
 06 02                   ; Type=Port, Length=2
 21 B7                   ; port 8631 (0x21B7)
+
+08 18                   ; Type=Hostname, Length=24
+70 72 69 6E 74 65 72 2E ;
+63 6F 72 70 2E 65 78 61 ;
+6D 70 6C 65 2E 63 6F 6D ; "printer.corp.example.com"
 </pre><a href="#section-5.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5.2-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) + (2+24) = 131 octets.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <p id="section-5.2-4">The Port field is included because this printer listens on 8631 rather than port 631, which is assigned to "_ipp._tcp"; see <a href="#port" class="auto internal xref">Section 3.4.6</a>.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2412,6 +2428,10 @@ A1 B2 C3 D4 E5 F6 07 08 ;
         <dd>
 <span class="refAuthor">ISTO Printer Working Group</span>, <span class="refTitle">"PWG 5100.14-2020: IPP Everywhere v1.1"</span>, <span class="seriesInfo">Version 1.1</span>, <time datetime="2020" class="refDate">2020</time>, <span>&lt;<a href="https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf">https://ftp.pwg.org/pub/pwg/candidates/cs-ippeve11-20200515-5100.14.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="NFC-CH">[NFC-CH]</dt>
+        <dd>
+<span class="refAuthor">NFC Forum</span>, <span class="refTitle">"Connection Handover Technical Specification"</span>, <span class="seriesInfo">NFC Forum CH</span>, <span class="seriesInfo">Version 1.5</span>, <span>n.d.</span>, <span>&lt;<a href="https://nfc-forum.org/build/specifications/connection-handover-technical-specification/">https://nfc-forum.org/build/specifications/connection-handover-technical-specification/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="NFC-VERB">[NFC-VERB]</dt>
         <dd>
 <span class="refAuthor">NFC Forum</span>, <span class="refTitle">"Verb Record Type Definition Technical Specification"</span>, <span class="seriesInfo">NFC Forum RTD-Verb</span>, <span class="seriesInfo">Version 1.0</span>, <time datetime="2015-12-08" class="refDate">8 December 2015</time>, <span>&lt;<a href="https://nfc-forum.org/build/specifications/">https://nfc-forum.org/build/specifications/</a>&gt;</span>. </dd>
@@ -2453,16 +2473,58 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 </div>
 </section>
 </div>
-<div id="acknowledgments">
+<div id="deployment-contexts">
 <section id="appendix-A">
+      <h2 id="name-deployment-contexts">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-deployment-contexts" class="section-name selfRef">Deployment Contexts</a>
+      </h2>
+<p id="appendix-A-1">This appendix is informative. It describes the two contexts in which DDBs are typically used, and what a DDB needs to contain to be useful in each.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<div id="peer-to-peer-connection-opportunities">
+<section id="appendix-A.1">
+        <h3 id="name-peer-to-peer-connection-opp">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-peer-to-peer-connection-opp" class="section-name selfRef">Peer-to-Peer Connection Opportunities</a>
+        </h3>
+<p id="appendix-A.1-1">In this context, a DDB advertises a service that a client can reach after establishing a direct link with the advertising device, such as a peer-to-peer Wi-Fi connection set up following an NFC tap or a Bluetooth Low Energy advertisement. Once that link exists, the client and the service share a network on which DNS-SD operates, typically via mDNS. The DDB lets the client decide, before connecting, whether the device offers a service it wants.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-2">Because the client can perform Service Instance Resolution once the link is established, the required fields (Service Name and Instance Name) are sufficient to reach the service, and TXT Data is useful for selection before connecting. The Hostname field is not needed to reach the service in this context, although it remains useful for TLS validation (see <a href="#hostname" class="auto internal xref">Section 3.4.8</a>). How the direct link itself is established is defined by the carrying technology (e.g., connection handover information accompanying the DDB), not by this document.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="lan-connection-opportunities">
+<section id="appendix-A.2">
+        <h3 id="name-lan-connection-opportunitie">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-lan-connection-opportunitie" class="section-name selfRef">LAN Connection Opportunities</a>
+        </h3>
+<p id="appendix-A.2-1">In this context, the client and the service are attached to an IP network that routes traffic between them, but DNS-SD does not reach from one to the other: for example, the network is segmented so that mDNS does not span both, and no Wide-Area DNS-SD or other multi-link solution (<span>[<a href="#RFC7558" class="cite xref">RFC7558</a>]</span>) is deployed for it. The DDB, received over an ancillary technology from a physically proximate device, is then the client's only source of DNS-SD information, and the client cannot perform Service Instance Resolution afterwards.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-2">For a DDB to be useful in this context, fields that are recommended or optional in general need to be present, and their values need to be usable without mDNS:<a href="#appendix-A.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.2-3.1">
+            <p id="appendix-A.2-3.1.1">Hostname: present, and resolvable by the client without mDNS, typically via unicast DNS. A hostname in the "local" domain is not resolvable across segments.<a href="#appendix-A.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-3.2">
+            <p id="appendix-A.2-3.2.1">Port: present, unless the registry-assigned port applies (<a href="#port" class="auto internal xref">Section 3.4.6</a>).<a href="#appendix-A.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-3.3">
+            <p id="appendix-A.2-3.3.1">TXT Data: present with the keys the client needs to select and use the service, since the client cannot retrieve the TXT record later.<a href="#appendix-A.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-3.4">
+            <p id="appendix-A.2-3.4.1">Domain: if the service is also registered in a unicast DNS-SD domain, including the Domain field lets the client perform Service Instance Resolution through that domain (<span>[<a href="#RFC6763" class="cite xref">RFC6763</a>]</span>, Section 11), even if it has no browsing domain configured.<a href="#appendix-A.2-3.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.2-4">A sender typically cannot tell which context a given receiver is in. A device attached to a managed network can serve both by including these fields whenever it has a hostname resolvable via unicast DNS.<a href="#appendix-A.2-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-5">Where reaching the service requires information beyond DNS-SD, such as the network to join, that information is conveyed by the carrying technology alongside the DDB (e.g., NFC Connection Handover <span>[<a href="#NFC-CH" class="cite xref">NFC-CH</a>]</span> or the Bluetooth LE Transport Discovery Service <span>[<a href="#BT-TDS" class="cite xref">BT-TDS</a>]</span>), not in the DDB itself. A carrying technology that offers a service over more than one carrier or transport can associate a separate DDB with each.<a href="#appendix-A.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-B">
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">TBD -- to be populated during the IETF process.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-1">TBD -- to be populated during the IETF process.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-B">
+<section id="appendix-C">
       <h2 id="name-authors-address">
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>
