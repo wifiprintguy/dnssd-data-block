@@ -481,17 +481,11 @@ Table of Contents
    Note:  In the vast majority of short-range proximity scenarios, the
       domain is "local" and this field can be omitted to save space.
 
-   Note:  The Domain field is UTF-8, whereas the Hostname field
-      (Section 3.4.8) is ASCII with internationalized labels in A-label
-      form.  This difference is deliberate and mirrors DNS-SD practice.
-      [RFC6763], Section 4.1.3 recommends that the <Domain> portion of a
-      Service Instance Name be represented as precomposed UTF-8 (Unicode
-      Normalization Form C).  An SRV target, by contrast, is a host name
-      used for address resolution and as the TLS Server Name Indication
-      value, which requires A-labels ([RFC6066], Section 3).  Encoders
-      MUST encode the Domain exactly as it appears in the Service
-      Instance Name.  A receiver that needs the A-label form (e.g., to
-      issue a unicast DNS query) can derive it per [RFC5891].
+   Note:  Both the Domain and Hostname (Section 3.4.8) fields MUST be
+      encoded exactly as they appear in the corresponding DNS-SD
+      records; see [RFC6763], Section 4.1.3 and [RFC6762], Section 16.
+      A receiver that needs A-label forms (e.g., for a unicast DNS query
+      or TLS SNI) derives them per [RFC5891].
 
 3.4.6.  Port (Type 0x06)
 
@@ -527,19 +521,19 @@ Table of Contents
 
 3.4.8.  Hostname (Type 0x08)
 
-   Value:  An ASCII string containing the fully qualified DNS hostname
-      of the host providing the service, as it would appear in the RDATA
-      of a DNS SRV record (target field).  The hostname is the DNS name
-      to which A or AAAA records are registered, and is the name used
-      for TLS Server Name Indication (SNI) when connecting to the
-      service.  For example: "device-abc.example.com".
+   Value:  A UTF-8 string containing the fully qualified DNS hostname of
+      the host providing the service, as it would appear in the RDATA of
+      a DNS SRV record (target field).  The hostname is the DNS name to
+      which A or AAAA records are registered, and is the name used for
+      TLS Server Name Indication (SNI) when connecting to the service.
+      For example: "device-abc.example.com".
 
-      The string is encoded in ASCII (not UTF-8) and MUST consist only
-      of DNS label characters (letters, digits, hyphens) and period
-      separators, per the preferred name syntax of [RFC1035],
-      Section 2.3.1.  Internationalized labels MUST be encoded as
-      A-labels ([RFC5890]).  The string MUST NOT include a trailing dot
-      and MUST NOT be null-terminated.
+      The string is encoded exactly as it appears in the SRV target:
+      precomposed UTF-8 for Multicast DNS ([RFC6762], Section 16), or as
+      registered in Unicast DNS.  It MUST NOT include a trailing dot and
+      MUST NOT be null-terminated.  A client that uses the hostname for
+      TLS Server Name Indication converts any non-ASCII labels to
+      A-labels ([RFC5891]), as [RFC6066], Section 3 requires.
 
    Constraints:  Optional.  Length MUST be between 1 and 253 octets,
       consistent with the maximum length of a fully qualified domain
@@ -571,9 +565,8 @@ Table of Contents
        encoded size.
 
    5.  All string values are UTF-8 encoded ([RFC3629]) and MUST NOT be
-       null-terminated, except the Hostname field (Section 3.4.8), which
-       is restricted to ASCII as specified in its own field definition.
-       String lengths in TLV Length fields count octets, not characters.
+       null-terminated.  String lengths in TLV Length fields count
+       octets, not characters.
 
    6.  A single TLV field using extended-length encoding may carry a
        value of at most 65,535 octets, occupying 1 (Type) + 3 (0xFF
@@ -605,9 +598,9 @@ Table of Contents
        e.  If the Type is known, check the Value against the constraints
        in that field's definition (Section 3.4).  If it violates them
        (for example, a UUID field whose Length is not 16, a Port field
-       whose Length is not 2, a Hostname containing characters outside
-       the permitted set, or a string field that is not valid UTF-8),
-       stop and discard the DDB.  Otherwise, process the field.
+       whose Length is not 2, a Hostname longer than 253 octets, or a
+       string field that is not valid UTF-8), stop and discard the DDB.
+       Otherwise, process the field.
 
        f.  If the Type is unknown, skip the Value bytes.
 
@@ -1034,10 +1027,6 @@ Table of Contents
 
 9.1.  Normative References
 
-   [RFC1035]  Mockapetris, P., "Domain names - implementation and
-              specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
-              November 1987, <https://www.rfc-editor.org/rfc/rfc1035>.
-
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
@@ -1046,11 +1035,6 @@ Table of Contents
    [RFC3629]  Yergeau, F., "UTF-8, a transformation format of ISO
               10646", STD 63, RFC 3629, DOI 10.17487/RFC3629, November
               2003, <https://www.rfc-editor.org/rfc/rfc3629>.
-
-   [RFC5890]  Klensin, J., "Internationalized Domain Names for
-              Applications (IDNA): Definitions and Document Framework",
-              RFC 5890, DOI 10.17487/RFC5890, August 2010,
-              <https://www.rfc-editor.org/rfc/rfc5890>.
 
    [RFC5891]  Klensin, J., "Internationalized Domain Names in
               Applications (IDNA): Protocol", RFC 5891,
@@ -1063,6 +1047,10 @@ Table of Contents
               Transport Protocol Port Number Registry", BCP 165,
               RFC 6335, DOI 10.17487/RFC6335, August 2011,
               <https://www.rfc-editor.org/rfc/rfc6335>.
+
+   [RFC6762]  Cheshire, S. and M. Krochmal, "Multicast DNS", RFC 6762,
+              DOI 10.17487/RFC6762, February 2013,
+              <https://www.rfc-editor.org/rfc/rfc6762>.
 
    [RFC6763]  Cheshire, S. and M. Krochmal, "DNS-Based Service
               Discovery", RFC 6763, DOI 10.17487/RFC6763, February 2013,
@@ -1116,10 +1104,6 @@ Table of Contents
               Extensions: Extension Definitions", RFC 6066,
               DOI 10.17487/RFC6066, January 2011,
               <https://www.rfc-editor.org/rfc/rfc6066>.
-
-   [RFC6762]  Cheshire, S. and M. Krochmal, "Multicast DNS", RFC 6762,
-              DOI 10.17487/RFC6762, February 2013,
-              <https://www.rfc-editor.org/rfc/rfc6762>.
 
    [RFC6838]  Freed, N., Klensin, J., and T. Hansen, "Media Type
               Specifications and Registration Procedures", BCP 13,
