@@ -68,6 +68,15 @@ informative:
       NFC Forum: "RTD-Verb"
       Version: "1.0"
     target: https://nfc-forum.org/build/specifications/
+  NFC-CH:
+    title: "Connection Handover Technical Specification"
+    author:
+      -
+        organization: NFC Forum
+    seriesinfo:
+      NFC Forum: "CH"
+      Version: "1.5"
+    target: https://nfc-forum.org/build/specifications/connection-handover-technical-specification/
   IPPEVE:
     title: "PWG 5100.14-2020: IPP Everywhere v1.1"
     author:
@@ -215,13 +224,13 @@ The following Type values are defined by this specification.
 | 0x05 | Domain | Optional |
 | 0x06 | Port | Optional |
 | 0x07 | Subtype List | Optional |
-| 0x08 | Hostname | Optional |
+| 0x08 | Hostname | Recommended |
 | 0x09-0xEF | Unassigned | N/A |
 | 0xF0-0xFE | Private Use | N/A |
 | 0xFF | Reserved | N/A |
 {: title="DDB Field Types"}
 
-A DDB MUST include exactly one Service Name field (Type 0x01) and exactly one Instance Name field (Type 0x02); all other field types defined in this registry are optional.
+A DDB MUST include exactly one Service Name field (Type 0x01) and exactly one Instance Name field (Type 0x02), and SHOULD include a Hostname field (Type 0x08); all other field types defined in this registry are optional. {{deployment-contexts}} describes when the recommended and optional fields are needed for a DDB to be useful.
 
 ### Service Name (Type 0x01) {#service-name}
 
@@ -373,7 +382,7 @@ Value:
 : The string is encoded exactly as it appears in the SRV target: precomposed UTF-8 for Multicast DNS ({{RFC6762}}, Section 16), or as registered in Unicast DNS. It MUST NOT include a trailing dot and MUST NOT be null-terminated. A client that uses the hostname for TLS Server Name Indication converts any non-ASCII labels to A-labels ({{RFC5891}}), as {{RFC6066}}, Section 3 requires.
 
 Constraints:
-: Optional. Length MUST be between 1 and 253 octets, consistent with the maximum length of a fully qualified domain name. If absent, the client MUST obtain the SRV target hostname via DNS-SD once an IP connection is established. Including this field is RECOMMENDED when the hostname is needed for TLS SNI certificate validation prior to IP-level name resolution.
+: Recommended; encoders SHOULD include this field. It is needed to reach the service where the client cannot perform DNS-SD resolution after receiving the DDB ({{deployment-contexts}}), and for TLS SNI certificate validation prior to IP-level name resolution. Length MUST be between 1 and 253 octets, consistent with the maximum length of a fully qualified domain name. If absent, the client MUST obtain the SRV target hostname via DNS-SD once an IP connection is established.
 
 Example:
 : The Hostname "device-abc.example.com" (22 octets) encodes as:
@@ -507,9 +516,14 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 
 06 02                   ; Type=Port, Length=2
 21 B7                   ; port 8631 (0x21B7)
+
+08 18                   ; Type=Hostname, Length=24
+70 72 69 6E 74 65 72 2E ;
+63 6F 72 70 2E 65 78 61 ;
+6D 70 6C 65 2E 63 6F 6D ; "printer.corp.example.com"
 ~~~
 
-Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) = 105 octets.
+Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) + (2+24) = 131 octets.
 
 The Port field is included because this printer listens on 8631 rather than port 631, which is assigned to "_ipp._tcp"; see {{port}}.
 
@@ -644,6 +658,34 @@ If decoders resolved duplicate TLV fields differently (for example, one keeping 
 The TXT Data field can carry arbitrary key=value pairs. Senders MUST NOT include long-lived secrets (Wi-Fi PSKs, passwords, private keys) in the TXT Data field of a DDB, as this data is transmitted in cleartext over short-range radio.
 
 --- back
+
+# Deployment Contexts {#deployment-contexts}
+
+This appendix is informative. It describes the two contexts in which DDBs are typically used, and what a DDB needs to contain to be useful in each.
+
+## Peer-to-Peer Connection Opportunities
+
+In this context, a DDB advertises a service that a client can reach after establishing a direct link with the advertising device, such as a peer-to-peer Wi-Fi connection set up following an NFC tap or a Bluetooth Low Energy advertisement. Once that link exists, the client and the service share a network on which DNS-SD operates, typically via mDNS. The DDB lets the client decide, before connecting, whether the device offers a service it wants.
+
+Because the client can perform Service Instance Resolution once the link is established, the required fields (Service Name and Instance Name) are sufficient to reach the service, and TXT Data is useful for selection before connecting. The Hostname field is not needed to reach the service in this context, although it remains useful for TLS validation (see {{hostname}}). How the direct link itself is established is defined by the carrying technology (e.g., connection handover information accompanying the DDB), not by this document.
+
+## LAN Connection Opportunities
+
+In this context, the client and the service are attached to an IP network that routes traffic between them, but DNS-SD does not reach from one to the other: for example, the network is segmented so that mDNS does not span both, and no Wide-Area DNS-SD or other multi-link solution ({{RFC7558}}) is deployed for it. The DDB, received over an ancillary technology from a physically proximate device, is then the client's only source of DNS-SD information, and the client cannot perform Service Instance Resolution afterwards.
+
+For a DDB to be useful in this context, fields that are recommended or optional in general need to be present, and their values need to be usable without mDNS:
+
+* Hostname: present, and resolvable by the client without mDNS, typically via unicast DNS. A hostname in the "local" domain is not resolvable across segments.
+
+* Port: present, unless the registry-assigned port applies ({{port}}).
+
+* TXT Data: present with the keys the client needs to select and use the service, since the client cannot retrieve the TXT record later.
+
+* Domain: if the service is also registered in a unicast DNS-SD domain, including the Domain field lets the client perform Service Instance Resolution through that domain ({{RFC6763}}, Section 11), even if it has no browsing domain configured.
+
+A sender typically cannot tell which context a given receiver is in. A device attached to a managed network can serve both by including these fields whenever it has a hostname resolvable via unicast DNS.
+
+Where reaching the service requires information beyond DNS-SD, such as the network to join, that information is conveyed by the carrying technology alongside the DDB (e.g., NFC Connection Handover {{NFC-CH}} or the Bluetooth LE Transport Discovery Service {{BT-TDS}}), not in the DDB itself. A carrying technology that offers a service over more than one carrier or transport can associate a separate DDB with each.
 
 # Acknowledgments
 {:numbered="false"}
