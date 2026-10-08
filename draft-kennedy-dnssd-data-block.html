@@ -2095,13 +2095,17 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 06 02                   ; Type=Port, Length=2
 21 B7                   ; port 8631 (0x21B7)
 
+07 07                   ; Type=Subtype List, Length=7
+06                      ; string length 6
+5F 70 72 69 6E 74       ; "_print"
+
 08 18                   ; Type=Hostname, Length=24
 70 72 69 6E 74 65 72 2E ;
 63 6F 72 70 2E 65 78 61 ;
 6D 70 6C 65 2E 63 6F 6D ; "printer.corp.example.com"
 </pre><a href="#section-5.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5.3-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) + (2+24) = 131 octets.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) + (2+7) + (2+24) = 140 octets.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
 <p id="section-5.3-4">The Port field is included because this printer listens on 8631 rather than port 631, which is assigned to "_ipp._tcp"; see <a href="#port" class="auto internal xref">Section 3.4.6</a>.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>

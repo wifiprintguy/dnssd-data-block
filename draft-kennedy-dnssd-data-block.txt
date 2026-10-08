@@ -818,13 +818,17 @@ Table of Contents
    06 02                   ; Type=Port, Length=2
    21 B7                   ; port 8631 (0x21B7)
 
+   07 07                   ; Type=Subtype List, Length=7
+   06                      ; string length 6
+   5F 70 72 69 6E 74       ; "_print"
+
    08 18                   ; Type=Hostname, Length=24
    70 72 69 6E 74 65 72 2E ;
    63 6F 72 70 2E 65 78 61 ;
    6D 70 6C 65 2E 63 6F 6D ; "printer.corp.example.com"
 
-   Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) + (2+24) = 131
-   octets.
+   Total: 1 + (2+9) + (2+23) + (2+44) + (2+16) + (2+2) + (2+7) + (2+24)
+   = 140 octets.
 
    The Port field is included because this printer listens on 8631
    rather than port 631, which is assigned to "_ipp._tcp"; see
