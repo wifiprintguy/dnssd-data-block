@@ -295,7 +295,7 @@ Value:
 : A 128-bit UUID in the binary representation defined in {{RFC9562}}, in network byte order. This field is a compact encoding of a "UUID" key/value pair in the service's TXT record, for service types whose TXT record conventions define such a key (e.g., IPP Everywhere {{IPPEVE}}). The meaning of the UUID value, and its relationship to other protocols, are defined by the service type and are outside the scope of this specification.
 
 Constraints:
-: Length MUST be exactly 16 (0x10) octets. An encoder MAY use this field in place of a TXT string only if that string's key is exactly "UUID", the value is the 36-character hyphenated form defined in {{RFC9562}} using lowercase hexadecimal digits, and the TXT record contains no other "UUID" key. When this field is used, that string MUST be removed from the TXT Data field. A DDB that contains both this field and a TXT string with the key "UUID" is invalid ({{decoding-rules}}).
+: Length MUST be exactly 16 (0x10) octets. An encoder MAY use this field in place of a TXT string only if that string's key is "UUID" (compared case-insensitively, per {{RFC6763}}, Section 6.4), the value is the 36-character hyphenated form defined in {{RFC9562}} using lowercase hexadecimal digits, and the TXT record contains no other "UUID" key. When this field is used, that string MUST be removed from the TXT Data field. A DDB that contains both this field and a TXT string whose key is "UUID" (compared case-insensitively) is invalid ({{decoding-rules}}).
 
 Example:
 : The UUID "12345678-1234-5678-1234-567812345678" encodes as:
