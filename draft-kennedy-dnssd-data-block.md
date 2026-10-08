@@ -586,6 +586,8 @@ The Instance Name often contains human-readable device names (e.g., "Jane's MacB
 
 Other fields can also identify a device or its owner. Hostnames often embed a device or owner name, and TXT Data can carry serial numbers, location descriptions, or administrative URLs. Senders SHOULD include in broadcast DDBs only the TXT keys a client needs to select the service.
 
+DDB provides no confidentiality of its own. Discovery schemes that protect private services by obfuscating advertised values, such as rotating Instance Names recognizable only by previously paired peers, can be carried in a DDB unchanged, provided the scheme also addresses the other fields (UUID, Hostname, TXT Data) and the identifiers of the carrying transport.
+
 ## Denial of Service
 
 A malicious sender can flood receivers with large numbers of DDB-carrying advertisements or messages. Receivers SHOULD implement rate limiting and deduplication.
