@@ -60,12 +60,13 @@ informative:
     date: 2020
     target: https://www.bluetooth.com/specifications/specs/transport-discovery-service-1-1/
   NFC-VERB:
-    title: "Verb RTD Technical Specification"
+    title: "Verb Record Type Definition Technical Specification"
     author:
       -
         organization: NFC Forum
-    date: 2015
+    date: 2015-12-08
     seriesinfo:
+      NFC Forum: "RTD-Verb"
       Version: "1.0"
     target: https://nfc-forum.org/build/specifications/
   IPPEVE:
