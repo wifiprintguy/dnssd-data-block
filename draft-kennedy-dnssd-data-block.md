@@ -563,13 +563,11 @@ The Port field is included because this printer listens on 8631 rather than port
 
 CBOR {{RFC8949}} and JSON {{RFC8259}} are both viable encoding options with good tooling. TLV was chosen for the following reasons:
 
-* Minimal overhead per field: a simple string field costs 2 octets of overhead (Type + Length) versus CBOR's 1+ octets for a key plus 1+ octets for the string header -- comparable at small scale, but TLV's 2-octet overhead per field (4 octets for values longer than 254 octets) is more predictable.
+* Minimal overhead per field: a simple string field costs 2 octets of overhead (Type + Length) versus CBOR's 1+ octets for a key plus 1+ octets for the string header, which is comparable at small scale, but TLV's 2-octet overhead per field (4 octets for values longer than 254 octets) is more predictable.
 
 * Implementation simplicity: TLV parsing requires only arithmetic on byte arrays; no recursive descent or schema lookup is needed. This supports implementation on very constrained devices (e.g., embedded firmware).
 
 * DNS-SD TXT data is already in a length-prefixed string encoding; embedding it verbatim in a TLV field avoids any re-encoding.
-
-* CBOR is a strong alternative and could be explored in a future revision, particularly if the broader IETF context moves toward CBOR-based service advertisement encodings.
 
 ## Why DNS-SD String Encoding and Not Numeric Types
 
@@ -645,7 +643,7 @@ The media type "application/dnssd-ddb", identifying the DDB payload defined in {
 
 # Security Considerations {#security}
 
-DDBs are typically carried in unauthenticated, short-range broadcast or proximity transports. The following security considerations apply:
+DDBs are typically carried in unauthenticated, short-range broadcast or proximity transports. The following security considerations apply.
 
 ## Spoofing and Impersonation
 
