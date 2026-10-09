@@ -715,6 +715,37 @@ A sender typically cannot tell which context a given receiver is in. A device at
 
 Where reaching the service requires information beyond DNS-SD, such as the network to join, that information is conveyed by the carrying technology alongside the DDB (e.g., NFC Connection Handover {{NFC-CH}} or the Bluetooth LE Transport Discovery Service {{BT-TDS}}), not in the DDB itself. A carrying technology that offers a service over more than one carrier or transport can associate a separate DDB with each.
 
+# Change Log
+{:removeinrfc}
+
+## Since draft-kennedy-dnssd-data-block-01
+
+* Retitled to "An Encoding for Non-IP Transports"; added a scope statement and clarified the relationship to {{RFC7558}}.
+
+* Instance Name is now required, and the Service Instance Name is described as the identity anchor of a DDB; added the Inherited Instance Name encoding.
+
+* Hostname is now recommended; added Appendix A describing peer-to-peer and LAN deployment contexts.
+
+* An absent Port now means the port assigned in the IANA Service Name and Transport Protocol Port Number Registry.
+
+* The UUID field is now a compact encoding of a TXT "UUID" key/value pair.
+
+* Decoders now discard DDBs containing duplicate TLVs, invalid field values, or non-canonical lengths.
+
+* Domain and Hostname are both encoded exactly as in the corresponding DNS-SD records.
+
+* Media type moved to the standards tree as "application/dnssd-ddb".
+
+* IANA: added guidance for designated experts and clarified the status of code points.
+
+* Security: added Hostname and TLS validation, relay and replay, parser differentials, and an expanded Privacy subsection.
+
+* Added and corrected examples.
+
+## Since draft-kennedy-dnssd-data-block-00
+
+* Made the abstract more concise; added discussion of {{RFC7558}}; fixed nits identified by idnits.
+
 # Acknowledgments
 {:numbered="false"}
 
