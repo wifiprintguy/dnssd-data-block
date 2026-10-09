@@ -1048,7 +1048,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Kennedy</td>
-<td class="center">Expires 11 April 2027</td>
+<td class="center">Expires 12 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1061,12 +1061,12 @@ svg {
 <dd class="internet-draft">draft-kennedy-dnssd-data-block-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-08" class="published">8 October 2026</time>
+<time datetime="2026-10-09" class="published">9 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-11">11 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-12">12 April 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1113,7 +1113,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2124,16 +2124,13 @@ A1 B2 C3 D4 E5 F6 07 08 ;
 <p id="section-6.1-1">CBOR <span>[<a href="#RFC8949" class="cite xref">RFC8949</a>]</span> and JSON <span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span> are both viable encoding options with good tooling. TLV was chosen for the following reasons:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-6.1-2.1">
-            <p id="section-6.1-2.1.1">Minimal overhead per field: a simple string field costs 2 octets of overhead (Type + Length) versus CBOR's 1+ octets for a key plus 1+ octets for the string header -- comparable at small scale, but TLV's 2-octet overhead per field (4 octets for values longer than 254 octets) is more predictable.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.1-2.1.1">Minimal overhead per field: a simple string field costs 2 octets of overhead (Type + Length) versus CBOR's 1+ octets for a key plus 1+ octets for the string header, which is comparable at small scale, but TLV's 2-octet overhead per field (4 octets for values longer than 254 octets) is more predictable.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.1-2.2">
             <p id="section-6.1-2.2.1">Implementation simplicity: TLV parsing requires only arithmetic on byte arrays; no recursive descent or schema lookup is needed. This supports implementation on very constrained devices (e.g., embedded firmware).<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.1-2.3">
             <p id="section-6.1-2.3.1">DNS-SD TXT data is already in a length-prefixed string encoding; embedding it verbatim in a TLV field avoids any re-encoding.<a href="#section-6.1-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-6.1-2.4">
-            <p id="section-6.1-2.4.1">CBOR is a strong alternative and could be explored in a future revision, particularly if the broader IETF context moves toward CBOR-based service advertisement encodings.<a href="#section-6.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2329,7 +2326,7 @@ A1 B2 C3 D4 E5 F6 07 08 ;
       <h2 id="name-security-considerations">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-8-1">DDBs are typically carried in unauthenticated, short-range broadcast or proximity transports. The following security considerations apply:<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-1">DDBs are typically carried in unauthenticated, short-range broadcast or proximity transports. The following security considerations apply.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <div id="spoofing-and-impersonation">
 <section id="section-8.1">
         <h3 id="name-spoofing-and-impersonation">

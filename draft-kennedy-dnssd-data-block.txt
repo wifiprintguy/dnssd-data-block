@@ -4,8 +4,8 @@
 
 Network Working Group                                         S. Kennedy
 Internet-Draft                                               Independent
-Intended status: Standards Track                          8 October 2026
-Expires: 11 April 2027
+Intended status: Standards Track                          9 October 2026
+Expires: 12 April 2027
 
 
           DNS-SD Data Block: An Encoding for Non-IP Transports
@@ -48,7 +48,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 April 2027.
+   This Internet-Draft will expire on 12 April 2027.
 
 Copyright Notice
 
@@ -843,9 +843,9 @@ Table of Contents
 
    *  Minimal overhead per field: a simple string field costs 2 octets
       of overhead (Type + Length) versus CBOR's 1+ octets for a key plus
-      1+ octets for the string header -- comparable at small scale, but
-      TLV's 2-octet overhead per field (4 octets for values longer than
-      254 octets) is more predictable.
+      1+ octets for the string header, which is comparable at small
+      scale, but TLV's 2-octet overhead per field (4 octets for values
+      longer than 254 octets) is more predictable.
 
    *  Implementation simplicity: TLV parsing requires only arithmetic on
       byte arrays; no recursive descent or schema lookup is needed.
@@ -854,10 +854,6 @@ Table of Contents
 
    *  DNS-SD TXT data is already in a length-prefixed string encoding;
       embedding it verbatim in a TLV field avoids any re-encoding.
-
-   *  CBOR is a strong alternative and could be explored in a future
-      revision, particularly if the broader IETF context moves toward
-      CBOR-based service advertisement encodings.
 
 6.2.  Why DNS-SD String Encoding and Not Numeric Types
 
@@ -1005,7 +1001,7 @@ Table of Contents
 
    DDBs are typically carried in unauthenticated, short-range broadcast
    or proximity transports.  The following security considerations
-   apply:
+   apply.
 
 8.1.  Spoofing and Impersonation
 
