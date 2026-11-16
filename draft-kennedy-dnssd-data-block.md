@@ -109,9 +109,9 @@ Examples include the following:
 
 * A television with an NFC interface in a hotel room advertises its media streaming services and supported carrier types using NFC Verb NDEF Records {{NFC-VERB}}. A client tapped to the TV reviews the advertised connection carriers and services and offers its user a selected optimal pathway before engaging in the process of connecting to the TV.
 
-Each of these ancillary discovery technologies was designed in part to carry application-layer service descriptions. Both include a field keyed by an organization identifier, whose contents are defined by the identified organization. This document defines that content for DNS-SD: a single encoding that each technology can reference, and that future ancillary discovery protocols can adopt.
+Each of these ancillary discovery technologies was designed in part to carry application-layer service descriptions. Both include a field keyed by an organization identifier, whose contents are defined by the identified organization. The DDB provides a structured format and associated encoding and decoding rules for DNS-SD, that outside technologies can reference and adopt knowing that it was defined by those who created DNS-SD.
 
-This document defines the DDB format and its associated encoding and decoding rules for interoperable use. The DDB is designed to:
+The DDB is designed to:
 
 * Fit within the small payload sizes typical of short-range advertisement and proximity discovery technologies.
 
