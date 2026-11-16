@@ -9,26 +9,26 @@
 <meta content="
        The DNS-SD Data Block (DDB) is a compact, Type-Length-Value (TLV) encoded container for conveying DNS-Based Service Discovery (DNS-SD) service information over non-IP transports used by short-range peer-to-peer or proximity-based advertisement and discovery technologies, such as the Bluetooth Low Energy Transport Discovery Service or Near Field Communication (NFC) Verb NFC Data Exchange Format (NDEF) records. 
     " name="description">
-<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="xml2rfc 3.35.0" name="generator">
 <meta content="dns-sd" name="keyword">
 <meta content="service discovery" name="keyword">
 <meta content="bluetooth low energy" name="keyword">
 <meta content="nfc" name="keyword">
 <meta content="draft-kennedy-dnssd-data-block-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.1
-    Python 3.14.8
-    ConfigArgParse 1.8.0
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.9.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.14.3
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.4
 -->
 <link href="draft-kennedy-dnssd-data-block.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1029,7 +1029,7 @@ svg {
   & :is([stroke="white"], [stroke^="#fff"]) {
     stroke: var(--background-color);
   }
-  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+  & :is([fill="black"], [fill^="#000"], :not([fill], [fill] *)) {
     fill: var(--text-color);
   }
   & :is([fill="white"], [fill^="#fff"]) {
@@ -1044,11 +1044,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">DNS-SD Data Block</td>
-<td class="right">October 2026</td>
+<td class="right">November 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Kennedy</td>
-<td class="center">Expires 12 April 2027</td>
+<td class="center">Expires 20 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1061,12 +1061,12 @@ svg {
 <dd class="internet-draft">draft-kennedy-dnssd-data-block-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-09" class="published">9 October 2026</time>
+<time datetime="2026-11-16" class="published">16 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-12">12 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-20">20 May 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1113,7 +1113,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 20 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1342,8 +1342,8 @@ svg {
           <p id="section-1-5.2.1">A television with an NFC interface in a hotel room advertises its media streaming services and supported carrier types using NFC Verb NDEF Records <span>[<a href="#NFC-VERB" class="cite xref">NFC-VERB</a>]</span>. A client tapped to the TV reviews the advertised connection carriers and services and offers its user a selected optimal pathway before engaging in the process of connecting to the TV.<a href="#section-1-5.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-6">Each of these ancillary discovery technologies was designed in part to carry application-layer service descriptions. Both include a field keyed by an organization identifier, whose contents are defined by the identified organization. This document defines that content for DNS-SD: a single encoding that each technology can reference, and that future ancillary discovery protocols can adopt.<a href="#section-1-6" class="pilcrow">¶</a></p>
-<p id="section-1-7">This document defines the DDB format and its associated encoding and decoding rules for interoperable use. The DDB is designed to:<a href="#section-1-7" class="pilcrow">¶</a></p>
+<p id="section-1-6">Each of these ancillary discovery technologies was designed in part to carry application-layer service descriptions. Both include a field keyed by an organization identifier, whose contents are defined by the identified organization. The DDB provides a structured format and associated encoding and decoding rules for DNS-SD, that outside technologies can reference and adopt knowing that it was defined by those who created DNS-SD.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-7">The DDB is designed to:<a href="#section-1-7" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1-8.1">
           <p id="section-1-8.1.1">Fit within the small payload sizes typical of short-range advertisement and proximity discovery technologies.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>

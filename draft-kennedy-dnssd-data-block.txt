@@ -4,8 +4,8 @@
 
 Network Working Group                                         S. Kennedy
 Internet-Draft                                               Independent
-Intended status: Standards Track                          9 October 2026
-Expires: 12 April 2027
+Intended status: Standards Track                        16 November 2026
+Expires: 20 May 2027
 
 
           DNS-SD Data Block: An Encoding for Non-IP Transports
@@ -48,7 +48,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 April 2027.
+   This Internet-Draft will expire on 20 May 2027.
 
 Copyright Notice
 
@@ -169,12 +169,12 @@ Table of Contents
    Each of these ancillary discovery technologies was designed in part
    to carry application-layer service descriptions.  Both include a
    field keyed by an organization identifier, whose contents are defined
-   by the identified organization.  This document defines that content
-   for DNS-SD: a single encoding that each technology can reference, and
-   that future ancillary discovery protocols can adopt.
+   by the identified organization.  The DDB provides a structured format
+   and associated encoding and decoding rules for DNS-SD, that outside
+   technologies can reference and adopt knowing that it was defined by
+   those who created DNS-SD.
 
-   This document defines the DDB format and its associated encoding and
-   decoding rules for interoperable use.  The DDB is designed to:
+   The DDB is designed to:
 
    *  Fit within the small payload sizes typical of short-range
       advertisement and proximity discovery technologies.
